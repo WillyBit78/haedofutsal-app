@@ -2703,21 +2703,21 @@
 
     function pagarCuotaSocio(paymentId) {
       const btnArea = document.getElementById(`pay-action-${paymentId}`);
-      btnArea.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin text-muted" style="font-size: 1rem;"></i>`;
+      if (btnArea) btnArea.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin text-primary" style="font-size: 1.2rem;"></i> Generando...`;
       
       google.script.run
         .withSuccessHandler(function(response) {
-          if (response && response.success) {
-            window.open(response.mp_link, '_blank');
-            // Restaurar por si vuelve
-            btnArea.innerHTML = `<button class="btn-sm-pay" onclick="pagarCuotaSocio('${paymentId}')"><i class="fa-solid fa-credit-card"></i> Pagar</button>`;
+          if (response && response.success && response.mp_link) {
+            // En celulares, redirigir directamente en la misma ventana evita el bloqueo de ventanas emergentes
+            window.location.href = response.mp_link;
           } else {
-            alert("Error al generar el link: " + (response ? response.message : "Error."));
-            btnArea.innerHTML = `<button class="btn-sm-pay" onclick="pagarCuotaSocio('${paymentId}')"><i class="fa-solid fa-credit-card"></i> Pagar</button>`;
+            alert("Mercado Pago: " + (response ? response.message : "No se pudo generar el enlace de cobro."));
+            if (btnArea) btnArea.innerHTML = `<button class="btn-sm-pay" onclick="pagarCuotaSocio('${paymentId}')"><i class="fa-solid fa-credit-card"></i> Pagar</button>`;
           }
         })
-        .withFailureHandler(function() {
-          btnArea.innerHTML = `<button class="btn-sm-pay" onclick="pagarCuotaSocio('${paymentId}')"><i class="fa-solid fa-credit-card"></i> Pagar</button>`;
+        .withFailureHandler(function(err) {
+          alert("Error al conectar con Mercado Pago: " + err.toString());
+          if (btnArea) btnArea.innerHTML = `<button class="btn-sm-pay" onclick="pagarCuotaSocio('${paymentId}')"><i class="fa-solid fa-credit-card"></i> Pagar</button>`;
         })
         .generarPagoMercadoPago(paymentId);
     }
