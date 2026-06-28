@@ -932,31 +932,33 @@ function getSpreadsheet() {
 function crearPreferenciaMercadoPago({ paymentId, email, amount, month }) {
   const token = getMercadoPagoToken();
   const url = "https://api.mercadopago.com/checkout/preferences";
-  
+  const numericAmount = parseFloat(amount || 0);
+
   const body = {
     items: [
       {
-        id: paymentId,
+        id: String(paymentId),
         title: `Futsal Haedo - Cuota Mes: ${month}`,
         description: `Pago de arancel mensual - Socio: ${email}`,
         quantity: 1,
-        unit_price: amount,
+        unit_price: numericAmount,
         currency_id: "ARS"
       }
     ],
-    payer: {
-      email: email
-    },
-    external_reference: paymentId,
+    external_reference: String(paymentId),
     back_urls: {
-      success: "https://www.google.com",
-      pending: "https://www.google.com",
-      failure: "https://www.google.com"
+      success: "https://haedofutsal-app.onrender.com",
+      pending: "https://haedofutsal-app.onrender.com",
+      failure: "https://haedofutsal-app.onrender.com"
     },
-    auto_return: "approved",
-    binary_mode: true
+    auto_return: "approved"
   };
-  
+
+  // Incluir payer solo si es un correo real que no sea de prueba interna
+  if (email && email.includes("@") && !email.includes("futsalhaedo.com")) {
+    body.payer = { email: email };
+  }
+
   const options = {
     method: "post",
     contentType: "application/json",
@@ -966,22 +968,28 @@ function crearPreferenciaMercadoPago({ paymentId, email, amount, month }) {
     payload: JSON.stringify(body),
     muteHttpExceptions: true
   };
-  
+
   const response = UrlFetchApp.fetch(url, options);
   const responseCode = response.getResponseCode();
   const responseText = response.getContentText();
-  
+
   if (responseCode < 200 || responseCode >= 300) {
     throw new Error(`Error en API Mercado Pago (HTTP ${responseCode}): ${responseText}`);
   }
-  
+
   const responseData = JSON.parse(responseText);
-  
-  if (responseData && responseData.init_point) {
-    return responseData.init_point;
-  } else {
-    throw new Error("La respuesta de Mercado Pago no contiene un enlace de checkout (init_point) válido.");
+
+  if (responseData) {
+    // Si la credencial es de Pruebas (TEST-...), Mercado Pago requiere sandbox_init_point
+    if (token.startsWith("TEST-") && responseData.sandbox_init_point) {
+      return responseData.sandbox_init_point;
+    }
+    if (responseData.init_point) {
+      return responseData.init_point;
+    }
   }
+  
+  throw new Error("La respuesta de Mercado Pago no contiene un enlace de checkout válido.");
 }
 
 /**
