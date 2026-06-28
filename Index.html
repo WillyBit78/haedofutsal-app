@@ -67,7 +67,7 @@
 
     .container {
       width: 100%;
-      max-width: 500px;
+      max-width: 1000px;
       margin: 0 auto;
       padding: 20px 20px 90px 20px; /* Margen inferior para barra de navegación */
       flex: 1;
@@ -712,7 +712,7 @@
       display: none;
       justify-content: center;
       align-items: center;
-      padding: 20px;
+      padding: 8px;
     }
 
     .modal {
@@ -721,8 +721,9 @@
       color: var(--text-main);
       border-radius: 20px;
       padding: 20px;
-      max-width: 400px;
-      width: 100%;
+      max-width: 720px;
+      width: 98%;
+      padding: 20px 24px;
       box-shadow: var(--shadow-premium);
       animation: scaleIn 0.25s ease;
       text-align: left;
@@ -1917,7 +1918,7 @@
 
   <!-- MODAL: ALTA DE NUEVO SOCIO / DEPORTISTA -->
   <div id="alta-socio-modal" class="modal-overlay" style="z-index: 12000;">
-    <div class="modal" style="max-width: 540px; width: 92%; max-height: 90vh; display: flex; flex-direction: column; background:#ffffff; color:#0f172a; border-radius:18px; box-shadow:var(--shadow-premium);">
+    <div class="modal" style="max-width: 760px; width: 98%; padding: 20px 24px; max-height: 90vh; display: flex; flex-direction: column; background:#ffffff; color:#0f172a; border-radius:18px; box-shadow:var(--shadow-premium);">
       <div class="modal-header" style="border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
         <h3 class="modal-title" style="display:flex; align-items:center; gap:8px; font-size:1.1rem; color:#0f172a; font-weight:800;">
           <i class="fa-solid fa-user-plus" style="color:var(--primary);"></i> Dar de Alta Nuevo Socio
@@ -1931,7 +1932,7 @@
           <input type="text" id="form-socio-name" class="form-input" placeholder="Ej: Pérez, Juan Agustín" style="background:#ffffff; border:1px solid #cbd5e1; color:#0f172a;" required>
         </div>
         
-        <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:8px;">
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:12px;">
           <div class="form-group" style="margin-bottom:0;">
             <label class="form-label" style="font-size:0.75rem; font-weight:700; color:#334155;">Correo Electrónico *</label>
             <input type="email" id="form-socio-email" class="form-input" placeholder="socio@ejemplo.com" style="background:#ffffff; border:1px solid #cbd5e1; color:#0f172a; font-size:0.8rem; padding:10px 8px;" required>
@@ -1950,7 +1951,7 @@
           </div>
         </div>
 
-        <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:10px;">
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:12px;">
           <div class="form-group" style="margin-bottom:0;">
             <label class="form-label" style="font-size:0.75rem; font-weight:700; color:#334155;">Categoría Deportiva *</label>
             <select id="form-socio-category" class="form-select" style="background:#ffffff; border:1px solid #cbd5e1; color:#0f172a;" required>
@@ -1967,7 +1968,7 @@
           </div>
         </div>
 
-        <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:10px;">
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:12px;">
           <div class="form-group" style="margin-bottom:0;">
             <label class="form-label" style="font-size:0.75rem; font-weight:700; color:#334155;">Teléfono Principal</label>
             <input type="tel" id="form-socio-phone" class="form-input" placeholder="Ej: 1122334455" style="background:#ffffff; border:1px solid #cbd5e1; color:#0f172a;">
@@ -1987,7 +1988,7 @@
           </div>
         </div>
 
-        <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:10px;">
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:12px;">
           <div class="form-group" style="margin-bottom:0;">
             <label class="form-label" style="font-size:0.75rem; font-weight:700; color:#334155;">Obra Social / Prepaga</label>
             <input type="text" id="form-socio-obrasocial" class="form-input" placeholder="Ej: OSDE / Particular" style="background:#ffffff; border:1px solid #cbd5e1; color:#0f172a;">
@@ -2000,7 +2001,7 @@
 
         <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:10px; border-radius:10px; display:flex; flex-direction:column; gap:8px;">
           <span style="font-size:0.72rem; font-weight:800; color:#1d4ed8; text-transform:uppercase;">Contacto de Emergencia / Tutor</span>
-          <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:8px;">
+          <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:10px;">
             <input type="text" id="form-socio-contact" class="form-input" placeholder="Nombre Contacto / Tutor" style="background:#ffffff; border:1px solid #cbd5e1; color:#0f172a; font-size:0.78rem;">
             <input type="tel" id="form-socio-contactphone" class="form-input" placeholder="Teléfono Contacto" style="background:#ffffff; border:1px solid #cbd5e1; color:#0f172a; font-size:0.78rem;">
           </div>
@@ -2021,7 +2022,7 @@
 
   <!-- MODAL: FICHA PERSONAL COMPLETA DEL SOCIO -->
   <div id="ficha-personal-modal" class="modal-overlay" style="z-index: 11000;">
-    <div class="modal" style="max-width: 520px; width: 92%; max-height: 88vh; display: flex; flex-direction: column;">
+    <div class="modal" style="max-width: 720px; width: 98%; max-height: 88vh; display: flex; flex-direction: column;">
       <div class="modal-header" style="border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">
         <h3 class="modal-title" style="display:flex; align-items:center; gap:8px; font-size:1.05rem;">
           <i class="fa-solid fa-id-card-clip" style="color:var(--primary);"></i> Ficha Personal Completa
@@ -2041,7 +2042,7 @@
 
   <!-- MODAL: DETALLE DE PARTIDO JUGADO (GOLEADORES, FIGURA, ETC.) -->
   <div id="partido-jugado-modal" class="modal-overlay" style="z-index: 11500;">
-    <div class="modal" style="max-width: 500px; width: 92%; max-height: 88vh; display: flex; flex-direction: column;">
+    <div class="modal" style="max-width: 720px; width: 98%; max-height: 88vh; display: flex; flex-direction: column;">
       <div class="modal-header" style="border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">
         <h3 class="modal-title" style="display:flex; align-items:center; gap:8px; font-size:1.05rem;">
           <i class="fa-solid fa-trophy" style="color:#fbbf24;"></i> Resumen Oficial del Partido
@@ -2061,7 +2062,7 @@
 
   <!-- MODAL: TABLA DE POSICIONES DEL TORNEO -->
   <div id="tabla-posiciones-modal" class="modal-overlay" style="z-index: 11600;">
-    <div class="modal" style="max-width: 680px; width: 95%; max-height: 88vh; display: flex; flex-direction: column;">
+    <div class="modal" style="max-width: 880px; width: 98%; max-height: 88vh; display: flex; flex-direction: column;">
       <div class="modal-header" style="border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">
         <h3 class="modal-title" style="display:flex; align-items:center; gap:8px; font-size:1.05rem;" id="modal-posiciones-titulo">
           <i class="fa-solid fa-trophy" style="color:#fbbf24;"></i> Tabla de Posiciones
@@ -2081,7 +2082,7 @@
 
   <!-- MODAL: COMPRAR / RESERVAR PRODUCTO DE LA TIENDA -->
   <div id="comprar-producto-modal" class="modal-overlay" style="z-index: 11700;">
-    <div class="modal" style="max-width: 480px; width: 92%; max-height: 88vh; display: flex; flex-direction: column;">
+    <div class="modal" style="max-width: 680px; width: 98%; max-height: 88vh; display: flex; flex-direction: column;">
       <div class="modal-header" style="border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">
         <h3 class="modal-title" style="display:flex; align-items:center; gap:8px; font-size:1.05rem;">
           <i class="fa-solid fa-cart-shopping" style="color:var(--success);"></i> Solicitar Producto de Tienda
@@ -2153,7 +2154,7 @@
 
   <!-- MODAL: LOG GENERAL DE LA APP / AUDITORÍA -->
   <div id="log-auditoria-modal" class="modal-overlay">
-    <div class="modal" style="max-width: 650px; width: 92%;">
+    <div class="modal" style="max-width: 800px; width: 98%;">
       <div class="modal-header">
         <h3 class="modal-title" style="display: flex; align-items: center; gap: 8px;">
           <i class="fa-solid fa-clipboard-list" style="color: #818cf8;"></i> Log General & Auditoría de Operaciones
@@ -2171,7 +2172,7 @@
 
   <!-- MODAL: DESGLOSE DE MEDIOS DE PAGO -->
   <div id="desglose-modal" class="modal-overlay">
-    <div class="modal" style="max-width: 450px; width: 90%;">
+    <div class="modal" style="max-width: 620px; width: 98%;">
       <div class="modal-header" style="border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">
         <h3 class="modal-title" id="lbl-desglose-titulo" style="font-size: 0.95rem; display:flex; align-items:center; gap:8px;">
           <i class="fa-solid fa-chart-pie" style="color:var(--primary);"></i> Desglose de Medio de Pago
@@ -2270,7 +2271,7 @@
 
   <!-- MODAL: DETALLE DE JORNADA / PARTIDO -->
   <div id="partido-detalle-modal" class="modal-overlay">
-    <div class="modal" style="max-width: 420px;">
+    <div class="modal" style="max-width: 620px; width: 98%;">
       <div class="modal-header">
         <h3 class="modal-title" id="partido-modal-torneo">Detalle del Partido</h3>
         <button class="modal-close" onclick="cerrarModalPartidoDetalle()"><i class="fa-solid fa-xmark"></i></button>
@@ -3767,7 +3768,7 @@
           <h4 style="margin:0 0 10px 0; font-size:0.78rem; font-weight:800; color:#475569; text-transform:uppercase; letter-spacing:0.5px; display:flex; align-items:center; gap:6px;">
             <i class="fa-solid fa-user" style="color:var(--primary);"></i> Datos Personales & Registro
           </h4>
-          <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:10px; font-size:0.8rem;">
+          <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:12px; font-size:0.8rem;">
             <div><span style="color:var(--text-muted); font-size:0.7rem; display:block;">Documento / DNI</span> <strong style="color:#0f172a;">${p.DNI || 'No registrado'}</strong></div>
             <div><span style="color:var(--text-muted); font-size:0.7rem; display:block;">Fecha de Nacimiento</span> <strong style="color:#0f172a;">${p.BirthDate || 'No registrada'} (${p.Age || '-'} años)</strong></div>
             <div><span style="color:var(--text-muted); font-size:0.7rem; display:block;">Fecha de Ingreso al Club</span> <strong style="color:#1d4ed8;"><i class="fa-solid fa-calendar-check"></i> ${p.JoinDate || '2024-03-01'}</strong></div>
@@ -3781,7 +3782,7 @@
           <h4 style="margin:0 0 10px 0; font-size:0.78rem; font-weight:800; color:var(--success); text-transform:uppercase; letter-spacing:0.5px; display:flex; align-items:center; gap:6px;">
             <i class="fa-solid fa-file-medical" style="color:var(--success);"></i> Ficha Médica & Salud
           </h4>
-          <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:10px; font-size:0.8rem;">
+          <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:12px; font-size:0.8rem;">
             <div><span style="color:var(--text-muted); font-size:0.7rem; display:block;">Grupo Sanguíneo</span> <strong style="color:#0f172a;"><i class="fa-solid fa-droplet" style="color:var(--danger);"></i> ${p.BloodType || 'O+'}</strong></div>
             <div><span style="color:var(--text-muted); font-size:0.7rem; display:block;">Obra Social / Prepaga</span> <strong style="color:#0f172a;">${p.ObraSocial || 'Particular'}</strong></div>
             <div style="grid-column: span 2; background:#ffffff; padding:8px 10px; border-radius:8px; border:1px solid rgba(22,163,74,0.3); margin-top:2px;">
