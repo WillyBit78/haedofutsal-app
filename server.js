@@ -44,7 +44,14 @@ function writeDb(data) {
 global.PropertiesService = {
   getScriptProperties: () => ({
     getProperty: (key) => {
-      if (key === "MP_ACCESS_TOKEN") return "MOCK_MP_ACCESS_TOKEN_DEVELOPMENT";
+      if (key === "MP_ACCESS_TOKEN") {
+        if (process.env.MP_ACCESS_TOKEN) return process.env.MP_ACCESS_TOKEN;
+        try {
+          const db = readDb();
+          if (db.Config && db.Config.MP_ACCESS_TOKEN) return db.Config.MP_ACCESS_TOKEN;
+        } catch(e) {}
+        return "MOCK_MP_ACCESS_TOKEN_DEVELOPMENT";
+      }
       return null;
     }
   })
@@ -143,26 +150,50 @@ global.SpreadsheetApp = {
 // Simulación de UrlFetchApp que mockea la llamada a Mercado Pago
 global.UrlFetchApp = {
   fetch: (url, options) => {
-    console.log(`[API CALL SIMULATION] Petición externa a: ${url}`);
-    
-    // Si es a Mercado Pago para generar preferencia
-    if (url.includes("api.mercadopago.com")) {
-      const payload = JSON.parse(options.payload);
-      const paymentId = payload.items[0].id;
-      
-      // Simulamos que Mercado Pago responde con éxito y da un enlace simulado de checkout
+    console.log(`[EXTERNAL API CALL] Petición a: ${url}`);
+    const method = (options && options.method) ? options.method.toUpperCase() : 'GET';
+    const headers = (options && options.headers) || {};
+    const payload = (options && options.payload) ? options.payload : '';
+
+    const workerScript = `
+      const https = require('https');
+      const http = require('http');
+      const urlStr = process.argv[1];
+      const method = process.argv[2];
+      const headers = JSON.parse(process.argv[3]);
+      const payload = process.argv[4];
+
+      const parsedUrl = new URL(urlStr);
+      const client = parsedUrl.protocol === 'https:' ? https : http;
+
+      const req = client.request(parsedUrl, {
+        method: method,
+        headers: headers
+      }, res => {
+        let data = '';
+        res.on('data', chunk => data += chunk);
+        res.on('end', () => {
+          process.stdout.write(res.statusCode + '|||' + data);
+        });
+      });
+      if (payload) req.write(payload);
+      req.end();
+    `;
+
+    try {
+      const { execFileSync } = require('child_process');
+      const out = execFileSync(process.execPath, ['-e', workerScript, url, method, JSON.stringify(headers), payload], { encoding: 'utf8' });
+      const parts = out.split('|||');
+      const statusCode = parseInt(parts[0] || '200');
+      const contentText = parts.slice(1).join('|||');
       return {
-        getResponseCode: () => 200,
-        getContentText: () => JSON.stringify({
-          init_point: `https://www.mercadopago.com.ar/checkout/v1/redirect?pref_id=mock_pref_for_${paymentId}`
-        })
+        getResponseCode: () => statusCode,
+        getContentText: () => contentText
       };
+    } catch (err) {
+      console.error('[EXTERNAL API ERROR]:', err.message);
+      throw err;
     }
-    
-    return {
-      getResponseCode: () => 200,
-      getContentText: () => "{}"
-    };
   }
 };
 
