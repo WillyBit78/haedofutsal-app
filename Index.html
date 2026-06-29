@@ -2329,9 +2329,9 @@
           <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0 0 12px 0; line-height: 1.4;">Transferí sin recargos directamente a la cuenta oficial del club.</p>
           
           <!-- BOTÓN DIRECTO MERCADO PAGO APP -->
-          <a id="btn-abrir-mp-transfer" href="https://link.mercadopago.com.ar/gpazosrio" target="_blank" rel="noopener noreferrer" class="btn-primary" style="background: #009ee3; border:none; width:100%; justify-content:center; padding: 10px; font-size: 0.88rem; font-weight: 700; margin-bottom: 12px; text-decoration: none; display: flex; align-items: center; gap: 6px; border-radius: 8px;">
-            <i class="fa-solid fa-mobile-screen-button" style="font-size: 1.1rem;"></i> Abrir Mercado Pago para Transferir
-          </a>
+          <button onclick="copiarYAbrirMercadoPago()" class="btn-primary" style="background: #009ee3; border:none; width:100%; justify-content:center; padding: 12px; font-size: 0.88rem; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; border-radius: 8px; cursor: pointer; color: white;">
+            <i class="fa-solid fa-mobile-screen-button" style="font-size: 1.1rem;"></i> Copiar Alias y Abrir Mercado Pago
+          </button>
 
           <div style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 12px; border-radius: 8px; font-size: 0.88rem; margin-bottom: 12px;">
             <div style="color: var(--text-muted); font-size: 0.8rem;">Titular: <strong style="color: var(--text-primary);">Club Futsal Haedo</strong></div>
@@ -2804,6 +2804,17 @@
         alert("¡Alias '" + alias + "' copiado al portapapeles!");
       }).catch(() => {
         alert("Alias: " + alias);
+      });
+    }
+
+    function copiarYAbrirMercadoPago() {
+      const alias = "gpazos.rio";
+      navigator.clipboard.writeText(alias).then(() => {
+        alert("¡Alias '" + alias + "' copiado! Redirigiendo a Mercado Pago para que lo pegues en Transferir.");
+        window.open("https://www.mercadopago.com.ar", "_blank");
+      }).catch(() => {
+        alert("Copiar Alias: " + alias);
+        window.open("https://www.mercadopago.com.ar", "_blank");
       });
     }
 
