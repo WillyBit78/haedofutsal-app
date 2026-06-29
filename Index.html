@@ -2307,6 +2307,60 @@
     </div>
   </div>
 
+  <!-- MODAL SELECCIÓN MÉTODO DE PAGO -->
+  <div id="modal-metodo-pago" class="modal-overlay" style="z-index: 12500; display: none;">
+    <div class="modal" style="max-width: 520px; border-radius: 16px; overflow: hidden;">
+      <div class="modal-header" style="background: var(--bg-card); padding: 1.2rem 1.5rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+        <h3 style="margin:0; font-size: 1.1rem; color: var(--text-primary);"><i class="fa-solid fa-wallet text-primary" style="margin-right: 6px;"></i> Opción de Pago</h3>
+        <button class="btn-close-modal" onclick="cerrarModalMetodoPago()" style="background: none; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer;">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 1.5rem;">
+        <div style="background: rgba(129,140,248,0.08); border-left: 4px solid var(--primary); padding: 12px 14px; border-radius: 8px; margin-bottom: 1.2rem;">
+          <p style="margin:0; font-weight: 700; color: var(--text-primary); font-size: 0.95rem;" id="modal-pago-detalle">Cuota: -- | Monto: $--</p>
+        </div>
+
+        <!-- OPCION 1: TRANSFERENCIA ($0 COMISION) -->
+        <div style="border: 2px solid #10b981; background: rgba(16, 185, 129, 0.05); border-radius: 12px; padding: 1.2rem; margin-bottom: 1.2rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <span style="background: #10b981; color: white; padding: 3px 10px; border-radius: 12px; font-size: 0.7rem; font-weight: 800; tracking: 0.05em;">RECOMENDADO ($0 COMISIÓN)</span>
+            <i class="fa-solid fa-building-columns" style="color: #10b981; font-size: 1.3rem;"></i>
+          </div>
+          <h4 style="margin: 0 0 4px 0; color: var(--text-primary); font-size: 1rem;">Transferencia Bancaria / CVU</h4>
+          <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0 0 12px 0; line-height: 1.4;">Transferí sin recargos ni demoras directamente a la cuenta oficial del club.</p>
+          
+          <div style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 12px; border-radius: 8px; font-size: 0.88rem; margin-bottom: 12px;">
+            <div style="color: var(--text-muted); font-size: 0.8rem;">Titular: <strong style="color: var(--text-primary);">Club Futsal Haedo</strong></div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px; background: rgba(0,0,0,0.15); padding: 6px 10px; border-radius: 6px;">
+              <span>Alias: <code id="alias-club" style="color:#10b981; font-size:1.05rem; font-weight:bold;">FUTSAL.HAEDO.MP</code></span>
+              <button class="btn-secondary" style="padding:4px 10px; font-size:0.75rem; border-radius:6px;" onclick="copiarAlias()"><i class="fa-regular fa-copy"></i> Copiar</button>
+            </div>
+            <div style="margin-top:6px; color: var(--text-muted); font-size: 0.8rem;">CVU: <span style="font-family: monospace; color: var(--text-primary);">0000003100012345678901</span></div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <button class="btn-primary" style="background: #25D366; border:none; width:100%; justify-content:center; padding: 10px; font-size: 0.85rem;" onclick="enviarComprobanteWhatsApp()">
+              <i class="fa-brands fa-whatsapp" style="font-size: 1.1rem; margin-right: 4px;"></i> WhatsApp
+            </button>
+            <button class="btn-secondary" style="width:100%; justify-content:center; padding: 10px; font-size: 0.85rem;" onclick="informarTransferenciaApp()">
+              <i class="fa-solid fa-check" style="margin-right: 4px;"></i> Ya Transferí
+            </button>
+          </div>
+        </div>
+
+        <!-- OPCION 2: MERCADO PAGO -->
+        <div style="border: 1px solid var(--border-color); border-radius: 12px; padding: 1rem; background: var(--bg-card);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+            <h4 style="margin: 0; color: var(--text-primary); font-size: 0.95rem;"><i class="fa-solid fa-credit-card" style="color: #009ee3; margin-right: 6px;"></i> Mercado Pago (Tarjeta)</h4>
+          </div>
+          <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0 0 10px 0;">Pago automático instantáneo con tarjeta de crédito o débito.</p>
+          <button class="btn-secondary" style="width:100%; justify-content:center; padding: 8px; font-size: 0.85rem;" onclick="confirmarPagoMercadoPago()">
+            Pagar con Mercado Pago &rarr;
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- SCRIPT CLIENTE -->
   <script>
     // DETECCIÓN DE ENTORNO SERVIDOR / RED LOCAL / TUNEL PARA PRUEBAS
@@ -2717,8 +2771,8 @@
             <p>Monto: $${parseFloat(p.Amount).toLocaleString('es-AR')}</p>
           </div>
           <div class="row-action" id="pay-action-${p.Payment_ID}">
-            <button class="btn-sm-pay" onclick="pagarCuotaSocio('${p.Payment_ID}')">
-              <i class="fa-solid fa-credit-card"></i> Pagar
+            <button class="btn-sm-pay" onclick="abrirModalMetodoPago('${p.Payment_ID}', '${p.Month}', '${p.Amount}')">
+              <i class="fa-solid fa-wallet"></i> Pagar Cuota
             </button>
           </div>
         `;
@@ -2726,23 +2780,63 @@
       });
     }
 
-    function pagarCuotaSocio(paymentId) {
+    let cuotaSeleccionadaPago = null;
+
+    function abrirModalMetodoPago(paymentId, month, amount) {
+      cuotaSeleccionadaPago = { paymentId, month, amount };
+      const detalle = document.getElementById("modal-pago-detalle");
+      if (detalle) detalle.innerText = `Cuota: ${month} | Monto a Abonar: $${parseFloat(amount).toLocaleString('es-AR')}`;
+      document.getElementById("modal-metodo-pago").style.display = "flex";
+    }
+
+    function cerrarModalMetodoPago() {
+      document.getElementById("modal-metodo-pago").style.display = "none";
+    }
+
+    function copiarAlias() {
+      const alias = "FUTSAL.HAEDO.MP";
+      navigator.clipboard.writeText(alias).then(() => {
+        alert("¡Alias '" + alias + "' copiado al portapapeles!");
+      }).catch(() => {
+        alert("Alias: " + alias);
+      });
+    }
+
+    function enviarComprobanteWhatsApp() {
+      if (!cuotaSeleccionadaPago) return;
+      const adminPhone = "5491133445566";
+      const socioNombre = estadoApp.userName || estadoApp.userEmail || "Socio";
+      const montoFormatted = parseFloat(cuotaSeleccionadaPago.amount).toLocaleString('es-AR');
+      const mensaje = `Hola Tesorería! Adjunto el comprobante de pago de la cuota ${cuotaSeleccionadaPago.month} por $${montoFormatted} de ${socioNombre}.`;
+      const url = `https://wa.me/${adminPhone}?text=${encodeURIComponent(mensaje)}`;
+      window.open(url, "_blank");
+    }
+
+    function informarTransferenciaApp() {
+      if (!cuotaSeleccionadaPago) return;
+      alert("¡Gracias por informar tu transferencia! La tesorería verificará el pago y actualizará tu estado a la brevedad.");
+      cerrarModalMetodoPago();
+    }
+
+    function confirmarPagoMercadoPago() {
+      if (!cuotaSeleccionadaPago) return;
+      const paymentId = cuotaSeleccionadaPago.paymentId;
+      cerrarModalMetodoPago();
       const btnArea = document.getElementById(`pay-action-${paymentId}`);
       if (btnArea) btnArea.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin text-primary" style="font-size: 1.2rem;"></i> Generando...`;
       
       google.script.run
         .withSuccessHandler(function(response) {
           if (response && response.success && response.mp_link) {
-            // En celulares, redirigir directamente en la misma ventana evita el bloqueo de ventanas emergentes
             window.location.href = response.mp_link;
           } else {
             alert("Mercado Pago: " + (response ? response.message : "No se pudo generar el enlace de cobro."));
-            if (btnArea) btnArea.innerHTML = `<button class="btn-sm-pay" onclick="pagarCuotaSocio('${paymentId}')"><i class="fa-solid fa-credit-card"></i> Pagar</button>`;
+            if (btnArea) btnArea.innerHTML = `<button class="btn-sm-pay" onclick="abrirModalMetodoPago('${paymentId}', '${cuotaSeleccionadaPago.month}', '${cuotaSeleccionadaPago.amount}')"><i class="fa-solid fa-wallet"></i> Pagar Cuota</button>`;
           }
         })
         .withFailureHandler(function(err) {
           alert("Error al conectar con Mercado Pago: " + err.toString());
-          if (btnArea) btnArea.innerHTML = `<button class="btn-sm-pay" onclick="pagarCuotaSocio('${paymentId}')"><i class="fa-solid fa-credit-card"></i> Pagar</button>`;
+          if (btnArea) btnArea.innerHTML = `<button class="btn-sm-pay" onclick="abrirModalMetodoPago('${paymentId}', '${cuotaSeleccionadaPago.month}', '${cuotaSeleccionadaPago.amount}')"><i class="fa-solid fa-wallet"></i> Pagar Cuota</button>`;
         })
         .generarPagoMercadoPago(paymentId);
     }
