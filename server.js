@@ -247,20 +247,37 @@ app.post('/api/run', (req, res) => {
     
     const result = func.apply(null, args || []);
 
-    // Si es una operación de escritura o modificación, sincronizar también en vivo con Google Sheets vía Apps Script
+    // Sincronización en vivo con Supabase en operaciones de escritura
     const writeOps = ['registrarSocioNuevo', 'marcarPagoComoPagado', 'generarPagoMercadoPago', 'registrarPartidoNuevo', 'registrarMovimientoTorneo', 'editarMovimientoTorneo', 'eliminarMovimientoTorneo'];
     if (writeOps.includes(functionName)) {
       try {
-        const appsScriptUrl = process.env.APPS_SCRIPT_URL || "https://script.google.com/macros/s/AKfycbwxz-qDTovawp9qLbHfNnByvfIWkkprR2QjShJQekil3kxECCD59NsRjZ0PGL2J8IhX/exec";
-        const targetUrl = `${appsScriptUrl}?api=run&func=${encodeURIComponent(functionName)}&args=${encodeURIComponent(JSON.stringify(args || []))}`;
         const https = require('https');
-        https.get(targetUrl, (res) => {
-          console.log(`[GOOGLE SHEETS SYNC] Sincronizado ${functionName} con Google Sheets (Status: ${res.statusCode})`);
-        }).on('error', (err) => {
-          console.error(`[GOOGLE SHEETS SYNC ERROR]`, err.message);
-        });
+        const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kjcnotrxxthnzpgljeus.supabase.co';
+        const SUPABASE_KEY = process.env.SUPABASE_KEY || 'sb_publishable_1XDuAL5LGylnk6SUgG3JHQ_stWGkIQ-';
+        
+        if (functionName === 'registrarSocioNuevo' && args[0]) {
+          const s = args[0];
+          const payload = JSON.stringify([{
+            email: (s.Email || '').toLowerCase().trim(), role: s.Role || 'Deportista', name: s.Name || '', phone: s.Phone || '',
+            category: s.Category || '', dni: s.DNI || '', birthdate: s.BirthDate || '', bloodtype: s.BloodType || 'O+',
+            medicalfit: s.MedicalFit || 'Apto Físico Vigente', obrasocial: s.ObraSocial || 'Particular', notes: s.Notes || ''
+          }]);
+          const req = https.request(new URL('/rest/v1/usuarios', SUPABASE_URL), {
+            method: 'POST', headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates' }
+          }, res => console.log('[SUPABASE SYNC] Nuevo socio en Supabase:', res.statusCode));
+          req.write(payload); req.end();
+        } else if (functionName === 'marcarPagoComoPagado' && args[0]) {
+          const pid = args[0];
+          const collector = args[1] || 'Admin';
+          const nowStr = new Date().toISOString().replace("T", " ").substring(0, 16);
+          const payload = JSON.stringify({ status: 'Pagado', collected_by: collector, collected_at: nowStr });
+          const req = https.request(new URL('/rest/v1/pagos?payment_id=eq.' + encodeURIComponent(pid), SUPABASE_URL), {
+            method: 'PATCH', headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json' }
+          }, res => console.log('[SUPABASE SYNC] Pago marcado en Supabase:', res.statusCode));
+          req.write(payload); req.end();
+        }
       } catch(syncErr) {
-        console.error('[GOOGLE SHEETS SYNC EXCEPTION]', syncErr.message);
+        console.error('[SUPABASE SYNC ERROR]', syncErr.message);
       }
     }
 
