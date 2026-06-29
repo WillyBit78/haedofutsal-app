@@ -60,6 +60,18 @@ function getMercadoPagoToken() {
  */
 function doGet(e) {
   try {
+    if (e && e.parameter && e.parameter.api === "run") {
+      const functionName = e.parameter.func;
+      const args = e.parameter.args ? JSON.parse(decodeURIComponent(e.parameter.args)) : [];
+      if (typeof this[functionName] === 'function') {
+        const result = this[functionName].apply(this, args);
+        return ContentService.createTextOutput(JSON.stringify({ success: true, result: result }))
+          .setMimeType(ContentService.MimeType.JSON);
+      } else {
+        return ContentService.createTextOutput(JSON.stringify({ success: false, error: "Función no encontrada: " + functionName }))
+          .setMimeType(ContentService.MimeType.JSON);
+      }
+    }
     const template = HtmlService.createTemplateFromFile("Index");
     return template.evaluate()
       .setTitle("Futsal Haedo - ERP Deportivo")
