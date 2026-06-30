@@ -440,28 +440,49 @@ app.post('/api/mp-webhook', (req, res) => {
 });
 
 app.get('/run-migration', async (req, res) => {
-  try {
-    const { Client } = require('pg');
+  const { Client } = require('pg');
+  
+  // Lista de posibles hosts a intentar (directo primero, luego poolers)
+  const targets = [
+    { host: 'db.kjcnotrxxthnzpgljeus.supabase.co', port: 5432, user: 'postgres' },
+    { host: 'aws-0-sa-east-1.pooler.supabase.com', port: 6543, user: 'postgres.kjcnotrxxthnzpgljeus' },
+    { host: 'aws-0-us-east-1.pooler.supabase.com', port: 6543, user: 'postgres.kjcnotrxxthnzpgljeus' },
+    { host: 'aws-0-us-east-2.pooler.supabase.com', port: 6543, user: 'postgres.kjcnotrxxthnzpgljeus' },
+    { host: 'aws-0-us-west-2.pooler.supabase.com', port: 6543, user: 'postgres.kjcnotrxxthnzpgljeus' }
+  ];
+
+  let lastError = null;
+
+  for (const t of targets) {
+    console.log(`[MIGRATION TRY] Intentando conectar a ${t.host}:${t.port}...`);
     const client = new Client({
-      host: 'db.kjcnotrxxthnzpgljeus.supabase.co',
-      port: 5432,
+      host: t.host,
+      port: t.port,
       database: 'postgres',
-      user: 'postgres',
+      user: t.user,
       password: 'HaedoFutsal.2026',
-      ssl: { rejectUnauthorized: false }
+      ssl: { rejectUnauthorized: false },
+      connectionTimeoutMillis: 4000
     });
-    await client.connect();
-    await client.query(`
-      ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS username TEXT UNIQUE;
-      ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS password TEXT;
-      UPDATE usuarios SET username = split_part(email, '@', 1) WHERE username IS NULL;
-      UPDATE usuarios SET password = '1234' WHERE password IS NULL;
-    `);
-    await client.end();
-    res.send('✅ Migración ejecutada con éxito en Supabase!');
-  } catch (err) {
-    res.status(500).send('❌ Error: ' + err.message);
+
+    try {
+      await client.connect();
+      console.log(`[MIGRATION SUCCESS] Conexión exitosa a ${t.host}!`);
+      await client.query(`
+        ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS username TEXT UNIQUE;
+        ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS password TEXT;
+        UPDATE usuarios SET username = split_part(email, '@', 1) WHERE username IS NULL;
+        UPDATE usuarios SET password = '1234' WHERE password IS NULL;
+      `);
+      await client.end();
+      return res.send(`✅ Migración ejecutada con éxito en Supabase usando ${t.host}!`);
+    } catch (err) {
+      console.error(`[MIGRATION FAIL] Error en ${t.host}:`, err.message);
+      lastError = err;
+    }
   }
+
+  res.status(500).send(`❌ Error: Ningún host de conexión funcionó. Último error: ${lastError.message}`);
 });
 
 app.listen(PORT, '0.0.0.0', () => {
