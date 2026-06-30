@@ -1102,3 +1102,51 @@ function inicializarBaseDatos() {
 
   return { success: true, message: "Base de datos inicializada con éxito con los 103 socios y datos completos." };
 }
+
+/**
+ * Conecta a la base de datos Supabase mediante JDBC (usando IPv6 directa de Google Cloud)
+ * para realizar la migración de la estructura (agregar username y password).
+ */
+function ejecutarMigracionSupabase() {
+  const host = "db.kjcnotrxxthnzpgljeus.supabase.co";
+  const port = 5432;
+  const dbName = "postgres";
+  const user = "postgres";
+  const pass = "HaedoFutsal.2026";
+  
+  const url = "jdbc:postgresql://" + host + ":" + port + "/" + dbName;
+  
+  Logger.log("🔄 Conectando a Supabase mediante JDBC...");
+  try {
+    const conn = Jdbc.getConnection(url, user, pass);
+    Logger.log("✅ Conexión JDBC establecida con éxito.");
+    
+    const stmt = conn.createStatement();
+    
+    Logger.log("🔄 Ejecutando ALTER TABLE...");
+    stmt.execute(
+      "ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS username TEXT UNIQUE;"
+    );
+    stmt.execute(
+      "ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS password TEXT;"
+    );
+    Logger.log("✅ Columnas creadas con éxito.");
+    
+    Logger.log("🔄 Inicializando credenciales por defecto...");
+    stmt.execute(
+      "UPDATE usuarios SET username = split_part(email, '@', 1) WHERE username IS NULL;"
+    );
+    stmt.execute(
+      "UPDATE usuarios SET password = '1234' WHERE password IS NULL;"
+    );
+    Logger.log("✅ Credenciales inicializadas.");
+    
+    stmt.close();
+    conn.close();
+    Logger.log("🎉 Migración de Supabase completada con éxito desde Apps Script!");
+    return "✅ Migración ejecutada con éxito!";
+  } catch (err) {
+    Logger.log("❌ Error: " + err.message);
+    throw new Error("Error en migración JDBC: " + err.message);
+  }
+}
