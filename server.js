@@ -442,19 +442,25 @@ app.post('/api/mp-webhook', (req, res) => {
 app.get('/run-migration', async (req, res) => {
   const { Client } = require('pg');
   
+  // Extraer el project reference dinámicamente del URL de Supabase configurado en el entorno
+  const supabaseUrl = process.env.SUPABASE_URL || 'https://kjcnotrxxthnzpgljeus.supabase.co';
+  const match = supabaseUrl.match(/https:\/\/([^.]+)\.supabase\.co/);
+  const ref = match ? match[1] : 'kjcnotrxxthnzpgljeus';
+  
   // Lista de posibles hosts a intentar (directo primero, luego poolers)
   const targets = [
-    { host: 'db.kjcnotrxxthnzpgljeus.supabase.co', port: 5432, user: 'postgres' },
-    { host: 'aws-0-sa-east-1.pooler.supabase.com', port: 6543, user: 'postgres.kjcnotrxxthnzpgljeus' },
-    { host: 'aws-0-us-east-1.pooler.supabase.com', port: 6543, user: 'postgres.kjcnotrxxthnzpgljeus' },
-    { host: 'aws-0-us-east-2.pooler.supabase.com', port: 6543, user: 'postgres.kjcnotrxxthnzpgljeus' },
-    { host: 'aws-0-us-west-2.pooler.supabase.com', port: 6543, user: 'postgres.kjcnotrxxthnzpgljeus' }
+    { host: `db.${ref}.supabase.co`, port: 5432, user: 'postgres' },
+    { host: `aws-0-sa-east-1.pooler.supabase.com`, port: 6543, user: `postgres.${ref}` },
+    { host: `aws-0-us-east-1.pooler.supabase.com`, port: 6543, user: `postgres.${ref}` },
+    { host: `aws-0-us-east-2.pooler.supabase.com`, port: 6543, user: `postgres.${ref}` },
+    { host: `aws-0-us-west-2.pooler.supabase.com`, port: 6543, user: `postgres.${ref}` }
   ];
 
   let lastError = null;
+  const attempts = [];
 
   for (const t of targets) {
-    console.log(`[MIGRATION TRY] Intentando conectar a ${t.host}:${t.port}...`);
+    console.log(`[MIGRATION TRY] Intentando conectar a ${t.host}:${t.port} con usuario ${t.user}...`);
     const client = new Client({
       host: t.host,
       port: t.port,
@@ -475,14 +481,21 @@ app.get('/run-migration', async (req, res) => {
         UPDATE usuarios SET password = '1234' WHERE password IS NULL;
       `);
       await client.end();
-      return res.send(`✅ Migración ejecutada con éxito en Supabase usando ${t.host}!`);
+      return res.send(`✅ Migración ejecutada con éxito en Supabase usando ${t.host}! (Project Ref: ${ref})`);
     } catch (err) {
       console.error(`[MIGRATION FAIL] Error en ${t.host}:`, err.message);
       lastError = err;
+      attempts.push({ host: t.host, user: t.user, error: err.message });
     }
   }
 
-  res.status(500).send(`❌ Error: Ningún host de conexión funcionó. Último error: ${lastError.message}`);
+  res.status(500).json({
+    message: '❌ Error: Ningún host de conexión funcionó.',
+    project_ref_detected: ref,
+    supabase_url_env: supabaseUrl,
+    last_error: lastError.message,
+    attempts: attempts
+  });
 });
 
 app.listen(PORT, '0.0.0.0', () => {
