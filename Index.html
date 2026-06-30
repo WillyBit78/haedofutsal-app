@@ -9,6 +9,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="ERP Haedo Futsal">
   <meta name="theme-color" content="#ffffff">
+  <link rel="manifest" href="manifest.json">
   <title>Futsal Haedo - ERP Deportivo</title>
   <!-- Google Fonts: Outfit -->
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -1518,6 +1519,9 @@
           </div>
         </div>
         <div style="display:flex; align-items:center; gap:8px;">
+          <button class="btn-secondary" onclick="abrirModalReportes()" style="font-size:0.75rem; padding:6px 12px; background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.3); color:#10b981; border-radius:10px; cursor:pointer; font-weight:600; display:flex; align-items:center; gap:6px;">
+            <i class="fa-solid fa-chart-line"></i> Reportes
+          </button>
           <button class="btn-secondary" onclick="abrirModalLogAuditoria()" style="font-size:0.75rem; padding:6px 12px; background:rgba(37,99,235,0.1); border:1px solid rgba(37,99,235,0.3); color:#1d4ed8; border-radius:10px; cursor:pointer; font-weight:600; display:flex; align-items:center; gap:6px;">
             <i class="fa-solid fa-clipboard-list"></i> Log General
           </button>
@@ -2196,6 +2200,77 @@
       </div>
       <div class="modal-footer">
         <button class="modal-btn cancel" onclick="cerrarModalLogAuditoria()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: REPORTES FINANCIEROS Y ESTADÍSTICAS -->
+  <div id="reportes-financieros-modal" class="modal-overlay">
+    <div class="modal" style="max-width: 850px; width: 98%;">
+      <div class="modal-header">
+        <h3 class="modal-title" style="display: flex; align-items: center; gap: 8px;">
+          <i class="fa-solid fa-chart-line" style="color: #10b981;"></i> Reportes Financieros y Estadísticas
+        </h3>
+        <button class="modal-close" onclick="cerrarModalReportes()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      
+      <!-- CONTROLES DE FILTRO -->
+      <div style="background: rgba(15, 23, 42, 0.03); border: 1px solid var(--border-color); padding: 12px 16px; border-radius: 12px; margin-bottom: 14px; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; align-items: end;">
+        <div>
+          <label style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px; text-transform: uppercase;">Tipo de Reporte</label>
+          <select id="reporte-tipo" onchange="cargarReporteSeleccionado()" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 0.82rem; font-weight: 600; color: #0f172a; background: #ffffff;">
+            <option value="gastos">📉 Egresos / Gastos de Torneos</option>
+            <option value="ingresos">📈 Ingresos / Recaudación de Cuotas</option>
+            <option value="balance">⚖️ Balance General de Caja</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px; text-transform: uppercase;">Período Mensual</label>
+          <input type="month" id="reporte-mes" onchange="cargarReporteSeleccionado()" style="width: 100%; padding: 7px 12px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 0.82rem; font-weight: 600; color: #0f172a; background: #ffffff;">
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button class="btn-primary" onclick="descargarReporteExcel()" style="flex: 1; font-size: 0.78rem; padding: 9px 12px; border-radius: 8px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; background: #10b981; border: 1px solid #10b981;">
+            <i class="fa-solid fa-file-excel"></i> Descargar CSV
+          </button>
+        </div>
+      </div>
+      
+      <!-- CONTENEDOR DE CONTENIDO DE REPORTES -->
+      <div style="max-height: 400px; overflow-y: auto; padding-right: 4px;">
+        <!-- FICHAS DE MÉTRICAS RÁPIDAS -->
+        <div id="reporte-resumen-cards" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 16px;">
+          <!-- Cargado dinámicamente -->
+        </div>
+
+        <!-- SECCIÓN DE GRÁFICOS SVG -->
+        <div id="reporte-grafico-container" class="card" style="margin-bottom: 16px; padding: 14px; text-align: center; background: #ffffff; border: 1px solid var(--border-color); display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 220px;">
+          <h4 style="margin: 0 0 12px 0; font-size: 0.85rem; font-weight: 700; color: #0f172a; text-transform: uppercase;" id="reporte-grafico-titulo">Distribución Visual</h4>
+          <div id="reporte-grafico-canvas" style="width: 100%; display: flex; justify-content: center; align-items: center;">
+            <!-- SVG dinámico inyectado por JS -->
+          </div>
+        </div>
+
+        <!-- TABLA DE DETALLE -->
+        <div class="card" style="padding: 0; background: #ffffff; border: 1px solid var(--border-color); overflow: hidden; margin-bottom: 8px;">
+          <div style="padding: 10px 14px; border-bottom: 1px solid var(--border-color); background: rgba(15, 23, 42, 0.02); display: flex; justify-content: space-between; align-items: center;">
+            <h4 style="margin: 0; font-size: 0.82rem; font-weight: 700; color: #0f172a; text-transform: uppercase;">Desglose de Conceptos</h4>
+            <span id="reporte-tabla-conteo" style="font-size: 0.72rem; color: var(--text-muted); font-weight: 600;">0 registros</span>
+          </div>
+          <div style="overflow-x: auto;">
+            <table class="data-table" style="width: 100%; border-collapse: collapse; font-size: 0.78rem;">
+              <thead id="reporte-tabla-cabecera" style="background: rgba(15, 23, 42, 0.04); border-bottom: 1px solid var(--border-color); text-align: left; font-weight: 700; color: #0f172a;">
+                <!-- Dinámico -->
+              </thead>
+              <tbody id="reporte-tabla-cuerpo" style="color: #334155;">
+                <!-- Dinámico -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="modal-btn cancel" onclick="cerrarModalReportes()">Cerrar</button>
       </div>
     </div>
   </div>
@@ -4627,6 +4702,521 @@
       document.getElementById("log-auditoria-modal").style.display = "none";
     }
 
+    // MODAL: REPORTES Y ESTADÍSTICAS FINANCIERAS
+    let datosReporteActual = null; // Guardar datos para exportación CSV
+    
+    function abrirModalReportes() {
+      document.getElementById("reportes-financieros-modal").style.display = "flex";
+      
+      // Inicializar el mes en el input (mes actual)
+      const inputMes = document.getElementById("reporte-mes");
+      if (inputMes && !inputMes.value) {
+        const d = new Date();
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        inputMes.value = `${y}-${m}`;
+      }
+      
+      cargarReporteSeleccionado();
+    }
+    
+    function cerrarModalReportes() {
+      document.getElementById("reportes-financieros-modal").style.display = "none";
+    }
+    
+    function cargarReporteSeleccionado() {
+      const tipo = document.getElementById("reporte-tipo").value;
+      const mes = document.getElementById("reporte-mes").value; // Formato: YYYY-MM
+      
+      const cards = document.getElementById("reporte-resumen-cards");
+      const canvas = document.getElementById("reporte-grafico-canvas");
+      const cabecera = document.getElementById("reporte-tabla-cabecera");
+      const cuerpo = document.getElementById("reporte-tabla-cuerpo");
+      const conteo = document.getElementById("reporte-tabla-conteo");
+      
+      cards.innerHTML = `<div style="grid-column: 1/-1; text-align:center; padding:10px;"><i class="fa-solid fa-spinner fa-spin"></i> Cargando reporte...</div>`;
+      canvas.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Generando gráficos...`;
+      cabecera.innerHTML = "";
+      cuerpo.innerHTML = "";
+      conteo.innerText = "Calculando...";
+
+      // Obtener datos globales de administración (donde se cargan pagos, torneos, finanzas)
+      if (!estadoApp.datosAdmin) {
+        google.script.run
+          .withSuccessHandler(function(response) {
+            if (response && response.success) {
+              estadoApp.datosAdmin = response;
+              procesarYRenderizarReporte(tipo, mes);
+            } else {
+              mostrarErrorReportes("No se pudieron obtener los datos de administración.");
+            }
+          })
+          .withFailureHandler(function(err) {
+            mostrarErrorReportes("Error al conectar con el servidor: " + err.message);
+          })
+          .cargarDatosAdministracion();
+      } else {
+        procesarYRenderizarReporte(tipo, mes);
+      }
+    }
+    
+    function mostrarErrorReportes(msg) {
+      document.getElementById("reporte-resumen-cards").innerHTML = `<div style="grid-column:1/-1; text-align:center; color:var(--danger); font-weight:700;">❌ ${msg}</div>`;
+      document.getElementById("reporte-grafico-canvas").innerHTML = `<span style="color:var(--text-muted);">Sin datos</span>`;
+    }
+
+    function procesarYRenderizarReporte(tipo, mes) {
+      const dbFinanzas = estadoApp.datosAdmin.finanzas || [];
+      const dbPagos = estadoApp.datosAdmin.pagos || [];
+      const dbUsuarios = estadoApp.datosAdmin.usuarios || [];
+      
+      const cards = document.getElementById("reporte-resumen-cards");
+      const canvas = document.getElementById("reporte-grafico-canvas");
+      const cabecera = document.getElementById("reporte-tabla-cabecera");
+      const cuerpo = document.getElementById("reporte-tabla-cuerpo");
+      const conteo = document.getElementById("reporte-tabla-conteo");
+
+      datosReporteActual = { tipo: tipo, mes: mes, filas: [] };
+
+      if (tipo === "gastos") {
+        // Filtrar gastos del mes seleccionado
+        const egresos = dbFinanzas.filter(f => f.Type === "Gasto" && f.Date.startsWith(mes));
+        const totalGastado = egresos.reduce((sum, f) => sum + parseFloat(f.Amount || 0), 0);
+        
+        // Agrupar por Concepto
+        const agrupadoPorConcepto = {};
+        egresos.forEach(f => {
+          const conc = f.Concept || "Otros / Varios";
+          if (!agrupadoPorConcepto[conc]) agrupadoPorConcepto[conc] = { total: 0, count: 0 };
+          agrupadoPorConcepto[conc].total += parseFloat(f.Amount || 0);
+          agrupadoPorConcepto[conc].count++;
+        });
+
+        // Generar Cards de resumen
+        cards.innerHTML = `
+          <div class="card" style="padding: 10px; border-left: 4px solid var(--danger); background:rgba(239,68,68,0.02); text-align:center;">
+            <span style="font-size:0.6rem; text-transform:uppercase; font-weight:700; color:var(--text-muted);">Total Egresos</span>
+            <h3 style="margin:2px 0 0 0; font-size:1.15rem; font-weight:800; color:var(--danger);">$${totalGastado.toLocaleString('es-AR')}</h3>
+          </div>
+          <div class="card" style="padding: 10px; border-left: 4px solid var(--primary); background:rgba(37,99,235,0.02); text-align:center;">
+            <span style="font-size:0.6rem; text-transform:uppercase; font-weight:700; color:var(--text-muted);">Movimientos</span>
+            <h3 style="margin:2px 0 0 0; font-size:1.15rem; font-weight:800; color:var(--primary);">${egresos.length}</h3>
+          </div>
+          <div class="card" style="padding: 10px; border-left: 4px solid var(--warning); background:rgba(245,158,11,0.02); text-align:center;">
+            <span style="font-size:0.6rem; text-transform:uppercase; font-weight:700; color:var(--text-muted);">Promedio x Egreso</span>
+            <h3 style="margin:2px 0 0 0; font-size:1.15rem; font-weight:800; color:var(--warning);">$${(egresos.length > 0 ? Math.round(totalGastado / egresos.length) : 0).toLocaleString('es-AR', {maximumFractionDigits:0})}</h3>
+          </div>
+        `;
+
+        // Generar Tabla Cabecera
+        cabecera.innerHTML = `
+          <tr>
+            <th style="padding: 8px 12px;">Concepto</th>
+            <th style="padding: 8px 12px; text-align:center;">Transacciones</th>
+            <th style="padding: 8px 12px; text-align:right;">Total Gastado</th>
+            <th style="padding: 8px 12px; text-align:right;">% del Gasto</th>
+          </tr>
+        `;
+
+        // Llenar tabla y guardar para descargar
+        const conceptosOrdenados = Object.keys(agrupadoPorConcepto).sort((a,b) => agrupadoPorConcepto[b].total - agrupadoPorConcepto[a].total);
+        conteo.innerText = `${conceptosOrdenados.length} conceptos`;
+
+        if (conceptosOrdenados.length === 0) {
+          cuerpo.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:20px; color:var(--text-muted);">No se encontraron gastos en este período.</td></tr>`;
+          canvas.innerHTML = `<span style="color:var(--text-muted);">Sin datos</span>`;
+          return;
+        }
+
+        const dataGrafico = [];
+        conceptosOrdenados.forEach(c => {
+          const item = agrupadoPorConcepto[c];
+          const pct = totalGastado > 0 ? ((item.total / totalGastado) * 100) : 0;
+          
+          datosReporteActual.filas.push({
+            "Concepto": c,
+            "Transacciones": item.count,
+            "Total Gastado ($)": item.total.toFixed(2),
+            "Porcentaje (%)": pct.toFixed(1) + '%'
+          });
+
+          dataGrafico.push({ label: c, value: item.total });
+
+          const tr = document.createElement("tr");
+          tr.style.borderBottom = "1px solid var(--border-color)";
+          tr.innerHTML = `
+            <td style="padding: 8px 12px; font-weight:600; color:#0f172a;">${c}</td>
+            <td style="padding: 8px 12px; text-align:center; color:var(--text-muted);">${item.count}</td>
+            <td style="padding: 8px 12px; text-align:right; font-weight:700; color:var(--danger);">$${item.total.toLocaleString('es-AR')}</td>
+            <td style="padding: 8px 12px; text-align:right; font-weight:600; color:var(--primary);">${pct.toFixed(1)}%</td>
+          `;
+          cuerpo.appendChild(tr);
+        });
+
+        // Dibujar gráfico SVG
+        dibujarGraficoTortaSVG(canvas, dataGrafico, totalGastado);
+
+      } else if (tipo === "ingresos") {
+        // Filtrar pagos por cuotas de socios del mes seleccionado
+        const pagosMes = dbPagos.filter(p => p.Month === mes);
+        const recaudado = pagosMes.filter(p => p.Status === "Pagado").reduce((sum, p) => sum + parseFloat(p.Amount || 0), 0);
+        const pendiente = pagosMes.filter(p => p.Status === "Pendiente").reduce((sum, p) => sum + parseFloat(p.Amount || 0), 0);
+        const totalFacturado = recaudado + pendiente;
+        const cobroPct = totalFacturado > 0 ? ((recaudado / totalFacturado) * 100) : 0;
+
+        // Agrupar por Categoría de Socio
+        const agrupadoPorCat = {};
+        pagosMes.forEach(p => {
+          // Obtener categoría del socio
+          const socio = dbUsuarios.find(u => u.Email.toLowerCase() === p.Email.toLowerCase());
+          const cat = socio ? (socio.Category || "Sin Categoría") : "Desconocida";
+          if (!agrupadoPorCat[cat]) agrupadoPorCat[cat] = { pagado: 0, pendiente: 0, count: 0 };
+          
+          if (p.Status === "Pagado") agrupadoPorCat[cat].pagado += parseFloat(p.Amount || 0);
+          else agrupadoPorCat[cat].pendiente += parseFloat(p.Amount || 0);
+          agrupadoPorCat[cat].count++;
+        });
+
+        // Generar Cards de resumen
+        cards.innerHTML = `
+          <div class="card" style="padding: 10px; border-left: 4px solid var(--success); background:rgba(22,163,74,0.02); text-align:center;">
+            <span style="font-size:0.6rem; text-transform:uppercase; font-weight:700; color:var(--text-muted);">Cobrado (Cuotas)</span>
+            <h3 style="margin:2px 0 0 0; font-size:1.15rem; font-weight:800; color:var(--success);">$${recaudado.toLocaleString('es-AR')}</h3>
+          </div>
+          <div class="card" style="padding: 10px; border-left: 4px solid var(--warning); background:rgba(245,158,11,0.02); text-align:center;">
+            <span style="font-size:0.6rem; text-transform:uppercase; font-weight:700; color:var(--text-muted);">Pendiente Cobro</span>
+            <h3 style="margin:2px 0 0 0; font-size:1.15rem; font-weight:800; color:var(--warning);">$${pendiente.toLocaleString('es-AR')}</h3>
+          </div>
+          <div class="card" style="padding: 10px; border-left: 4px solid var(--primary); background:rgba(37,99,235,0.02); text-align:center;">
+            <span style="font-size:0.6rem; text-transform:uppercase; font-weight:700; color:var(--text-muted);">Efectividad Cobro</span>
+            <h3 style="margin:2px 0 0 0; font-size:1.15rem; font-weight:800; color:var(--primary);">${cobroPct.toFixed(1)}%</h3>
+          </div>
+        `;
+
+        // Generar Tabla Cabecera
+        cabecera.innerHTML = `
+          <tr>
+            <th style="padding: 8px 12px;">Categoría</th>
+            <th style="padding: 8px 12px; text-align:center;">Socios</th>
+            <th style="padding: 8px 12px; text-align:right;">Cobrado</th>
+            <th style="padding: 8px 12px; text-align:right;">Pendiente</th>
+            <th style="padding: 8px 12px; text-align:right;">% Cobro</th>
+          </tr>
+        `;
+
+        const categoriasOrdenadas = Object.keys(agrupadoPorCat).sort((a,b) => (agrupadoPorCat[b].pagado + agrupadoPorCat[b].pendiente) - (agrupadoPorCat[a].pagado + agrupadoPorCat[a].pendiente));
+        conteo.innerText = `${categoriasOrdenadas.length} categorías`;
+
+        if (categoriasOrdenadas.length === 0) {
+          cuerpo.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:20px; color:var(--text-muted);">No se encontraron cuotas de socios en este período.</td></tr>`;
+          canvas.innerHTML = `<span style="color:var(--text-muted);">Sin datos</span>`;
+          return;
+        }
+
+        const dataGrafico = [];
+        categoriasOrdenadas.forEach(c => {
+          const item = agrupadoPorCat[c];
+          const totalCat = item.pagado + item.pendiente;
+          const pctCobro = totalCat > 0 ? ((item.pagado / totalCat) * 100) : 0;
+          
+          datosReporteActual.filas.push({
+            "Categoría": c,
+            "Socios": item.count,
+            "Cobrado ($)": item.pagado.toFixed(2),
+            "Pendiente ($)": item.pendiente.toFixed(2),
+            "Efectividad (%)": pctCobro.toFixed(1) + '%'
+          });
+
+          dataGrafico.push({ label: c, pagado: item.pagado, pendiente: item.pendiente });
+
+          const tr = document.createElement("tr");
+          tr.style.borderBottom = "1px solid var(--border-color)";
+          tr.innerHTML = `
+            <td style="padding: 8px 12px; font-weight:600; color:#0f172a;">${c}</td>
+            <td style="padding: 8px 12px; text-align:center; color:var(--text-muted);">${item.count}</td>
+            <td style="padding: 8px 12px; text-align:right; font-weight:700; color:var(--success);">$${item.pagado.toLocaleString('es-AR')}</td>
+            <td style="padding: 8px 12px; text-align:right; font-weight:700; color:var(--warning);">$${item.pendiente.toLocaleString('es-AR')}</td>
+            <td style="padding: 8px 12px; text-align:right; font-weight:600; color:var(--primary);">${pctCobro.toFixed(1)}%</td>
+          `;
+          cuerpo.appendChild(tr);
+        });
+
+        // Dibujar gráfico de Barras Comparativo SVG
+        dibujarGraficoBarrasSVG(canvas, dataGrafico);
+
+      } else if (tipo === "balance") {
+        // Balance General de Caja (Egresos vs Ingresos por Cuotas e Ingresos por Torneos)
+        const recaudadoCuotas = dbPagos.filter(p => p.Month === mes && p.Status === "Pagado").reduce((sum, p) => sum + parseFloat(p.Amount || 0), 0);
+        const ingresosExtras = dbFinanzas.filter(f => f.Type === "Ingreso" && f.Date.startsWith(mes)).reduce((sum, f) => sum + parseFloat(f.Amount || 0), 0);
+        const egresosCaja = dbFinanzas.filter(f => f.Type === "Gasto" && f.Date.startsWith(mes)).reduce((sum, f) => sum + parseFloat(f.Amount || 0), 0);
+
+        const totalIngresos = recaudadoCuotas + ingresosExtras;
+        const totalGastos = egresosCaja;
+        const neto = totalIngresos - totalGastos;
+
+        // Generar Cards de resumen
+        cards.innerHTML = `
+          <div class="card" style="padding: 10px; border-left: 4px solid var(--success); background:rgba(22,163,74,0.02); text-align:center;">
+            <span style="font-size:0.6rem; text-transform:uppercase; font-weight:700; color:var(--text-muted);">Ingresos Consolidados</span>
+            <h3 style="margin:2px 0 0 0; font-size:1.15rem; font-weight:800; color:var(--success);">$${totalIngresos.toLocaleString('es-AR')}</h3>
+          </div>
+          <div class="card" style="padding: 10px; border-left: 4px solid var(--danger); background:rgba(239,68,68,0.02); text-align:center;">
+            <span style="font-size:0.6rem; text-transform:uppercase; font-weight:700; color:var(--text-muted);">Egresos Consolidados</span>
+            <h3 style="margin:2px 0 0 0; font-size:1.15rem; font-weight:800; color:var(--danger);">$${totalGastos.toLocaleString('es-AR')}</h3>
+          </div>
+          <div class="card" style="padding: 10px; border-left: 4px solid ${neto >= 0 ? 'var(--primary)' : 'var(--danger)'}; background:rgba(37,99,235,0.02); text-align:center;">
+            <span style="font-size:0.6rem; text-transform:uppercase; font-weight:700; color:var(--text-muted);">Saldo Neto</span>
+            <h3 style="margin:2px 0 0 0; font-size:1.15rem; font-weight:800; color:${neto >= 0 ? 'var(--primary)' : 'var(--danger)'};">$${neto.toLocaleString('es-AR')}</h3>
+          </div>
+        `;
+
+        // Generar Tabla Cabecera
+        cabecera.innerHTML = `
+          <tr>
+            <th style="padding: 8px 12px;">Concepto de Flujo</th>
+            <th style="padding: 8px 12px; text-align:right;">Ingreso</th>
+            <th style="padding: 8px 12px; text-align:right;">Egreso</th>
+            <th style="padding: 8px 12px; text-align:right;">Subtotal Neto</th>
+          </tr>
+        `;
+
+        const flujos = [
+          { nombre: "Recaudación de Cuotas de Socios", ingreso: recaudadoCuotas, egreso: 0 },
+          { nombre: "Ingresos por Torneos, buffet y sponsors", ingreso: ingresosExtras, egreso: 0 },
+          { nombre: "Gastos Operativos, Canchas, Buffet, Árbitros", ingreso: 0, egreso: egresosCaja }
+        ];
+
+        conteo.innerText = `3 flujos de caja`;
+
+        flujos.forEach(f => {
+          const subNeto = f.ingreso - f.egreso;
+          datosReporteActual.filas.push({
+            "Concepto de Flujo": f.nombre,
+            "Ingreso ($)": f.ingreso.toFixed(2),
+            "Egreso ($)": f.egreso.toFixed(2),
+            "Subtotal Neto ($)": subNeto.toFixed(2)
+          });
+
+          const tr = document.createElement("tr");
+          tr.style.borderBottom = "1px solid var(--border-color)";
+          tr.innerHTML = `
+            <td style="padding: 8px 12px; font-weight:600; color:#0f172a;">${f.nombre}</td>
+            <td style="padding: 8px 12px; text-align:right; font-weight:700; color:${f.ingreso > 0 ? 'var(--success)' : 'var(--text-muted)'};">$${f.ingreso.toLocaleString('es-AR')}</td>
+            <td style="padding: 8px 12px; text-align:right; font-weight:700; color:${f.egreso > 0 ? 'var(--danger)' : 'var(--text-muted)'};">$${f.egreso.toLocaleString('es-AR')}</td>
+            <td style="padding: 8px 12px; text-align:right; font-weight:800; color:${subNeto >= 0 ? 'var(--primary)' : 'var(--danger)'};">$${subNeto.toLocaleString('es-AR')}</td>
+          `;
+          cuerpo.appendChild(tr);
+        });
+
+        // Dibujar gráfico de Balance Neto SVG
+        dibujarGraficoBalanceSVG(canvas, totalIngresos, totalGastos);
+      }
+    }
+
+    // DIBUJAR GRÁFICO DE TORTA SVG DINÁMICO
+    function dibujarGraficoTortaSVG(container, data, total) {
+      if (total <= 0) {
+        container.innerHTML = `<span style="color:var(--text-muted);">Sin datos para graficar</span>`;
+        return;
+      }
+
+      const sorted = [...data].sort((a,b) => b.value - a.value);
+      const top5 = sorted.slice(0, 4);
+      const others = sorted.slice(4);
+      if (others.length > 0) {
+        const sumOthers = others.reduce((sum, item) => sum + item.value, 0);
+        top5.push({ label: "Otros / Varios", value: sumOthers });
+      }
+
+      const colors = ['#1d4ed8', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#64748b'];
+      
+      let cumulativeAngle = 0;
+      let svgContent = '';
+      
+      top5.forEach((item, idx) => {
+        const pct = item.value / total;
+        const angle = pct * 360;
+        
+        const r = 80;
+        const cx = 100;
+        const cy = 100;
+        
+        const startRad = (cumulativeAngle - 90) * Math.PI / 180;
+        const endRad = (cumulativeAngle + angle - 90) * Math.PI / 180;
+        
+        const x1 = cx + r * Math.cos(startRad);
+        const y1 = cy + r * Math.sin(startRad);
+        const x2 = cx + r * Math.cos(endRad);
+        const y2 = cy + r * Math.sin(endRad);
+        
+        const largeArcFlag = angle > 180 ? 1 : 0;
+        
+        if (pct === 1) {
+          svgContent += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${colors[idx % colors.length]}" />`;
+        } else {
+          svgContent += `
+            <path d="M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 ${largeArcFlag} 1 ${x2} ${y2} Z" 
+                  fill="${colors[idx % colors.length]}" 
+                  stroke="#ffffff" 
+                  stroke-width="1.5" />
+          `;
+        }
+        
+        cumulativeAngle += angle;
+      });
+
+      let leyendaContent = `<div style="display:flex; flex-direction:column; gap:6px; align-items:flex-start; text-align:left; font-size:0.7rem; font-weight:600; width:100%; max-width:220px;">`;
+      top5.forEach((item, idx) => {
+        const pct = ((item.value / total) * 100).toFixed(1);
+        leyendaContent += `
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span style="width:12px; height:12px; border-radius:3px; background:${colors[idx % colors.length]}; flex-shrink:0;"></span>
+            <span style="color:#0f172a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:140px;">${item.label}</span>
+            <span style="color:var(--text-muted); font-size:0.65rem;">(${pct}%)</span>
+          </div>
+        `;
+      });
+      leyendaContent += `</div>`;
+
+      container.innerHTML = `
+        <div style="display:flex; align-items:center; justify-content:center; gap:30px; width:100%; flex-wrap:wrap; margin: 10px 0;">
+          <svg width="200" height="200" style="flex-shrink:0;">
+            ${svgContent}
+            <circle cx="100" cy="100" r="45" fill="#ffffff" />
+            <text x="100" y="105" text-anchor="middle" font-size="9" font-weight="800" fill="#0f172a">EGRESOS</text>
+          </svg>
+          ${leyendaContent}
+        </div>
+      `;
+    }
+
+    // DIBUJAR GRÁFICO DE BARRAS COMPARATIVO SVG DINÁMICO
+    function dibujarGraficoBarrasSVG(container, data) {
+      const filtered = data.filter(d => (d.pagado + d.pendiente) > 0).slice(0, 5);
+      if (filtered.length === 0) {
+        container.innerHTML = `<span style="color:var(--text-muted);">Sin datos para graficar</span>`;
+        return;
+      }
+
+      const maxVal = Math.max(...filtered.map(d => d.pagado + d.pendiente));
+      
+      let barsContent = '';
+      
+      filtered.forEach((d, idx) => {
+        const total = d.pagado + d.pendiente;
+        const pagadoPct = total > 0 ? (d.pagado / maxVal) * 120 : 0; 
+        const pendientePct = total > 0 ? (d.pendiente / maxVal) * 120 : 0;
+        
+        const xPos = 40 + idx * 60;
+        
+        barsContent += `
+          <!-- Barra de Pagado (Verde) -->
+          <rect x="${xPos}" y="${150 - pagadoPct}" width="16" height="${pagadoPct}" fill="#10b981" rx="2" />
+          
+          <!-- Barra de Pendiente (Naranja) -->
+          <rect x="${xPos + 18}" y="${150 - pendientePct}" width="16" height="${pendientePct}" fill="#f59e0b" rx="2" />
+          
+          <!-- Etiqueta debajo -->
+          <text x="${xPos + 17}" y="165" text-anchor="middle" font-size="7" font-weight="700" fill="#64748b">${d.label.substring(0, 8)}</text>
+        `;
+      });
+
+      const leyenda = `
+        <div style="display:flex; justify-content:center; gap:20px; font-size:0.7rem; font-weight:600; margin-top:10px;">
+          <div style="display:flex; align-items:center; gap:6px;">
+            <span style="width:12px; height:12px; border-radius:3px; background:#10b981;"></span>
+            <span style="color:#0f172a;">Cobrado</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:6px;">
+            <span style="width:12px; height:12px; border-radius:3px; background:#f59e0b;"></span>
+            <span style="color:#0f172a;">Pendiente</span>
+          </div>
+        </div>
+      `;
+
+      container.innerHTML = `
+        <div style="display:flex; flex-direction:column; align-items:center; width:100%; margin: 10px 0;">
+          <svg width="340" height="180">
+            <line x1="20" y1="30" x2="330" y2="30" stroke="#f1f5f9" stroke-width="1" />
+            <line x1="20" y1="70" x2="330" y2="70" stroke="#f1f5f9" stroke-width="1" />
+            <line x1="20" y1="110" x2="330" y2="110" stroke="#f1f5f9" stroke-width="1" />
+            <line x1="20" y1="150" x2="330" y2="150" stroke="#cbd5e1" stroke-width="1.5" />
+            
+            ${barsContent}
+          </svg>
+          ${leyenda}
+        </div>
+      `;
+    }
+
+    // DIBUJAR GRÁFICO DE BALANCE GENERAL (COMPARA INGRESO VS EGRESO)
+    function dibujarGraficoBalanceSVG(container, ingresos, gastos) {
+      const maxVal = Math.max(ingresos, gastos, 1);
+      
+      const ingHeight = (ingresos / maxVal) * 110;
+      const gastHeight = (gastos / maxVal) * 110;
+      
+      container.innerHTML = `
+        <div style="display:flex; align-items:center; justify-content:center; gap:40px; width:100%; height:180px; margin: 10px 0;">
+          <div style="display:flex; flex-direction:column; align-items:center;">
+            <div style="width:40px; height:120px; background:#f1f5f9; border-radius:6px; display:flex; align-items:flex-end;">
+              <div style="width:100%; height:${ingHeight}px; background:#10b981; border-radius:6px; transition:height 0.3s;"></div>
+            </div>
+            <span style="font-size:0.75rem; font-weight:700; margin-top:8px; color:var(--success);">INGRESOS</span>
+            <strong style="font-size:0.8rem; color:#0f172a; margin-top:2px;">$${ingresos.toLocaleString('es-AR')}</strong>
+          </div>
+          
+          <div style="display:flex; flex-direction:column; align-items:center;">
+            <div style="width:40px; height:120px; background:#f1f5f9; border-radius:6px; display:flex; align-items:flex-end;">
+              <div style="width:100%; height:${gastHeight}px; background:#ef4444; border-radius:6px; transition:height 0.3s;"></div>
+            </div>
+            <span style="font-size:0.75rem; font-weight:700; margin-top:8px; color:var(--danger);">EGRESOS</span>
+            <strong style="font-size:0.8rem; color:#0f172a; margin-top:2px;">$${gastos.toLocaleString('es-AR')}</strong>
+          </div>
+        </div>
+      `;
+    }
+
+    // EXPORTAR REPORTE A FORMATO CSV / EXCEL DESCARGABLE
+    function descargarReporteExcel() {
+      if (!datosReporteActual || !datosReporteActual.filas || datosReporteActual.filas.length === 0) {
+        alert("No hay datos disponibles en el reporte para exportar.");
+        return;
+      }
+      
+      const tipo = datosReporteActual.tipo;
+      const mes = datosReporteActual.mes;
+      const filas = datosReporteActual.filas;
+      
+      const headers = Object.keys(filas[0]);
+      
+      let csvContent = "\ufeff"; 
+      csvContent += `Reporte: ${tipo.toUpperCase()} - Periodo: ${mes}\n\n`;
+      csvContent += headers.join(";") + "\n";
+      
+      filas.forEach(f => {
+        const values = headers.map(h => {
+          const val = f[h] !== undefined && f[h] !== null ? f[h] : '';
+          return typeof val === 'string' && val.includes(';') ? `"${val}"` : val;
+        });
+        csvContent += values.join(";") + "\n";
+      });
+      
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", `Reporte_${tipo}_${mes}.csv`);
+      link.style.visibility = 'hidden';
+      
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      console.log(`[REPORT EXPORT] Reporte de ${tipo} exportado a CSV con éxito.`);
+    }
+
     function renderizarLogsAuditoria(logs) {
       const container = document.getElementById("log-auditoria-container");
       container.innerHTML = "";
@@ -5702,6 +6292,68 @@
     function ocultarErrorLogin() {
       document.getElementById("login-error").style.display = "none";
     }
+
+    // ───────────── PWA: Registro del Service Worker ─────────────
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+          .then(reg => console.log('[PWA] Service Worker registrado:', reg.scope))
+          .catch(err => console.warn('[PWA] Error al registrar SW:', err));
+      });
+    }
+
+    // ───────────── PWA: Banner de instalación (Android Chrome) ─────────────
+    let deferredInstallPrompt = null;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredInstallPrompt = e;
+      const banner = document.getElementById('pwa-install-banner');
+      if (banner) banner.style.display = 'flex';
+    });
+
+    function instalarPWA() {
+      if (!deferredInstallPrompt) return;
+      deferredInstallPrompt.prompt();
+      deferredInstallPrompt.userChoice.then(choice => {
+        deferredInstallPrompt = null;
+        const banner = document.getElementById('pwa-install-banner');
+        if (banner) banner.style.display = 'none';
+      });
+    }
+
+    window.addEventListener('appinstalled', () => {
+      const banner = document.getElementById('pwa-install-banner');
+      if (banner) banner.style.display = 'none';
+      deferredInstallPrompt = null;
+    });
+
   </script>
+
+  <!-- ───────────── Banner de instalación PWA ───────────── -->
+  <div id="pwa-install-banner" style="
+    display:none; position:fixed; bottom:0; left:0; right:0; z-index:99999;
+    background:linear-gradient(90deg,#1d4ed8,#2563eb); color:#fff;
+    padding:12px 20px; align-items:center; justify-content:space-between;
+    font-family:'Outfit',sans-serif; font-size:14px; box-shadow:0 -2px 12px rgba(0,0,0,0.3);
+  ">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span style="font-size:22px;">⚽</span>
+      <div>
+        <div style="font-weight:700;">Instalar Haedo Futsal</div>
+        <div style="font-size:12px;opacity:0.85;">Accedé desde tu pantalla de inicio, sin internet</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button onclick="instalarPWA()" style="
+        background:#fff; color:#1d4ed8; border:none; border-radius:8px;
+        padding:8px 16px; font-weight:700; font-size:13px; cursor:pointer;
+      ">Instalar</button>
+      <button onclick="document.getElementById('pwa-install-banner').style.display='none'" style="
+        background:transparent; color:#fff; border:1px solid rgba(255,255,255,0.5);
+        border-radius:8px; padding:8px 12px; font-size:13px; cursor:pointer;
+      ">✕</button>
+    </div>
+  </div>
+
 </body>
 </html>
