@@ -1265,14 +1265,27 @@
         </div>
         
         <div class="form-group">
-          <label class="form-label" for="login-email">Ingresá tu Correo Electrónico</label>
+          <label class="form-label" for="login-username">Usuario de Acceso</label>
           <div class="input-wrapper">
-            <i class="fa-solid fa-envelope input-icon"></i>
-            <input type="email" id="login-email" class="form-input" placeholder="ejemplo@correo.com" onkeydown="if(event.key === 'Enter') ejecutarLogin()">
+            <i class="fa-solid fa-user input-icon"></i>
+            <input type="text" id="login-username" class="form-input" placeholder="Ingresá tu usuario" onkeydown="if(event.key === 'Enter') document.getElementById('login-password').focus()">
           </div>
         </div>
+
+        <div class="form-group" style="margin-top: 12px;">
+          <label class="form-label" for="login-password">Clave Numérica (4 dígitos)</label>
+          <div class="input-wrapper">
+            <i class="fa-solid fa-lock input-icon"></i>
+            <input type="password" id="login-password" class="form-input" placeholder="••••" maxlength="4" pattern="[0-9]*" inputmode="numeric" onkeydown="if(event.key === 'Enter') ejecutarLogin()">
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-top: 10px; display: flex; align-items: center; gap: 8px;">
+          <input type="checkbox" id="login-remember" style="width: 16px; height: 16px; cursor: pointer;">
+          <label for="login-remember" style="font-size: 0.8rem; color: var(--text-muted); cursor: pointer; user-select: none;">Recordarme en este dispositivo</label>
+        </div>
         
-        <button id="btn-login" class="btn" type="button" onclick="ejecutarLogin()">
+        <button id="btn-login" class="btn" type="button" onclick="ejecutarLogin()" style="margin-top: 12px;">
           <span>Ingresar</span>
           <i class="fa-solid fa-arrow-right"></i>
         </button>
@@ -1281,9 +1294,9 @@
         <div style="margin-top: 14px; padding-top: 10px; border-top: 1px solid var(--border-color); text-align: center;">
           <span style="font-size: 0.62rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; display: block; margin-bottom: 8px;">Ingreso Rápido de Prueba (3 Roles)</span>
           <div style="display: flex; gap: 6px; justify-content: center; flex-wrap: wrap;">
-            <button onclick="loginDemo('guillermopazos@gmail.com')" type="button" style="background: rgba(29,78,216,0.15); border: 1px solid var(--primary); color: #818cf8; padding: 5px 10px; font-size: 0.7rem; border-radius: 8px; cursor: pointer; font-weight: 600;">👑 Admin</button>
-            <button onclick="loginDemo('coach@futsalhaedo.com')" type="button" style="background: rgba(245,158,11,0.15); border: 1px solid #f59e0b; color: #fbbf24; padding: 5px 10px; font-size: 0.7rem; border-radius: 8px; cursor: pointer; font-weight: 600;">⚽ Coach</button>
-            <button onclick="loginDemo('deportista@futsalhaedo.com')" type="button" style="background: rgba(16,185,129,0.15); border: 1px solid #10b981; color: #34d399; padding: 5px 10px; font-size: 0.7rem; border-radius: 8px; cursor: pointer; font-weight: 600;">🧢 Socio</button>
+            <button onclick="loginDemo('gpazos', '1234')" type="button" style="background: rgba(29,78,216,0.15); border: 1px solid var(--primary); color: #818cf8; padding: 5px 10px; font-size: 0.7rem; border-radius: 8px; cursor: pointer; font-weight: 600;">👑 Admin</button>
+            <button onclick="loginDemo('coach', '1234')" type="button" style="background: rgba(245,158,11,0.15); border: 1px solid #f59e0b; color: #fbbf24; padding: 5px 10px; font-size: 0.7rem; border-radius: 8px; cursor: pointer; font-weight: 600;">⚽ Coach</button>
+            <button onclick="loginDemo('deportista', '1234')" type="button" style="background: rgba(16,185,129,0.15); border: 1px solid #10b981; color: #34d399; padding: 5px 10px; font-size: 0.7rem; border-radius: 8px; cursor: pointer; font-weight: 600;">🧢 Socio</button>
           </div>
         </div>
       </div>
@@ -1927,9 +1940,26 @@
       </div>
       
       <div style="overflow-y: auto; padding: 16px 4px; display: flex; flex-direction: column; gap: 12px;">
-        <div class="form-group" style="margin-bottom:0;">
-          <label class="form-label" style="font-size:0.75rem; font-weight:700; color:#334155;">Nombre y Apellido *</label>
-          <input type="text" id="form-socio-name" class="form-input" placeholder="Ej: Pérez, Juan Agustín" style="background:#ffffff; border:1px solid #cbd5e1; color:#0f172a;" required>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-bottom:0;">
+          <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label" style="font-size:0.75rem; font-weight:700; color:#334155;">Nombre *</label>
+            <input type="text" id="form-socio-firstname" class="form-input" placeholder="Ej: Juan Agustín" style="background:#ffffff; border:1px solid #cbd5e1; color:#0f172a;" required>
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label" style="font-size:0.75rem; font-weight:700; color:#334155;">Apellido *</label>
+            <input type="text" id="form-socio-lastname" class="form-input" placeholder="Ej: Pérez" style="background:#ffffff; border:1px solid #cbd5e1; color:#0f172a;" required>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:12px;">
+          <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label" style="font-size:0.75rem; font-weight:700; color:#334155;">Usuario de Acceso *</label>
+            <input type="text" id="form-socio-username" class="form-input" placeholder="Ej: jperez" style="background:#ffffff; border:1px solid #cbd5e1; color:#0f172a; font-size:0.8rem; padding:10px 8px;" required>
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label" style="font-size:0.75rem; font-weight:700; color:#334155;">Clave Numérica (4 dígitos) *</label>
+            <input type="password" id="form-socio-password" class="form-input" placeholder="••••" maxlength="4" pattern="[0-9]*" inputmode="numeric" style="background:#ffffff; border:1px solid #cbd5e1; color:#0f172a; font-size:0.8rem; padding:10px 8px;" required>
+          </div>
         </div>
         
         <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:12px;">
@@ -2425,18 +2455,33 @@
         return {
           email: localStorage.getItem("futsal_session_email"),
           role: localStorage.getItem("futsal_session_role") || "Deportista",
-          name: localStorage.getItem("futsal_session_name") || "Usuario"
+          name: localStorage.getItem("futsal_session_name") || "Usuario",
+          username: localStorage.getItem("futsal_session_username")
         };
       },
-      setSession(userInfo) {
+      setSession(userInfo, remember = false) {
         localStorage.setItem("futsal_session_email", userInfo.email || "");
         localStorage.setItem("futsal_session_role", userInfo.role || "Deportista");
         localStorage.setItem("futsal_session_name", userInfo.name || "Usuario");
+        localStorage.setItem("futsal_session_username", userInfo.username || "");
+        if (remember && userInfo.username && userInfo.password) {
+          localStorage.setItem("futsal_saved_username", userInfo.username);
+          localStorage.setItem("futsal_saved_password", userInfo.password);
+        }
       },
       clearSession() {
         localStorage.removeItem("futsal_session_email");
         localStorage.removeItem("futsal_session_role");
         localStorage.removeItem("futsal_session_name");
+        localStorage.removeItem("futsal_session_username");
+        localStorage.removeItem("futsal_saved_username");
+        localStorage.removeItem("futsal_saved_password");
+      },
+      getSavedCredentials() {
+        return {
+          username: localStorage.getItem("futsal_saved_username"),
+          password: localStorage.getItem("futsal_saved_password")
+        };
       }
     };
 
@@ -2532,31 +2577,47 @@
           .withSuccessHandler(function() {
             window.history.replaceState({}, document.title, window.location.pathname);
             alert("¡Pago acreditado con éxito por Mercado Pago! Gracias.");
+            const saved = AuthService.getSavedCredentials();
             const session = AuthService.getSession();
-            if (session.email) ejecutarLoginDirecto(session.email);
-            else { ocultarCarga(); mostrarPantalla("login-view"); }
+            if (saved.username && saved.password) {
+              ejecutarLoginDirecto(saved.username, saved.password);
+            } else if (session.username) {
+              ejecutarLoginDirecto(session.username, null);
+            } else { ocultarCarga(); mostrarPantalla("login-view"); }
           })
           .withFailureHandler(function() {
             window.history.replaceState({}, document.title, window.location.pathname);
+            const saved = AuthService.getSavedCredentials();
             const session = AuthService.getSession();
-            if (session.email) ejecutarLoginDirecto(session.email);
-            else { ocultarCarga(); mostrarPantalla("login-view"); }
+            if (saved.username && saved.password) {
+              ejecutarLoginDirecto(saved.username, saved.password);
+            } else if (session.username) {
+              ejecutarLoginDirecto(session.username, null);
+            } else { ocultarCarga(); mostrarPantalla("login-view"); }
           })
           .marcarPagoComoPagado(extRef, "MercadoPago", "MercadoPago");
         return;
       }
 
-      const session = AuthService.getSession();
-      if (session && session.email) {
-        ejecutarLoginDirecto(session.email);
+      // Probar autologin con credenciales recordadas
+      const saved = AuthService.getSavedCredentials();
+      if (saved.username && saved.password) {
+        ejecutarLoginDirecto(saved.username, saved.password);
       } else {
-        ocultarCarga();
-        mostrarPantalla("login-view");
+        // Probar autologin con sesión de pestaña activa
+        const session = AuthService.getSession();
+        if (session && session.username) {
+          ejecutarLoginDirecto(session.username, null);
+        } else {
+          ocultarCarga();
+          mostrarPantalla("login-view");
+        }
       }
     };
 
-    function loginDemo(email) {
-      document.getElementById("login-email").value = email;
+    function loginDemo(username, password) {
+      document.getElementById("login-username").value = username;
+      document.getElementById("login-password").value = password;
       ejecutarLogin();
     }
 
@@ -2608,9 +2669,16 @@
 
     // LOGIN & AUTHENTICATION CONTROLLER
     function ejecutarLogin() {
-      const emailInput = document.getElementById("login-email").value.trim();
-      if (!emailInput || !emailInput.includes("@")) {
-        mostrarErrorLogin("Por favor, ingresá un correo electrónico válido.");
+      const usernameInput = document.getElementById("login-username").value.trim();
+      const passwordInput = document.getElementById("login-password").value.trim();
+      const rememberChecked = document.getElementById("login-remember").checked;
+
+      if (!usernameInput) {
+        mostrarErrorLogin("Por favor, ingresá tu usuario.");
+        return;
+      }
+      if (!passwordInput || passwordInput.length !== 4 || isNaN(passwordInput)) {
+        mostrarErrorLogin("La clave de acceso debe ser numérica de 4 dígitos.");
         return;
       }
       
@@ -2618,24 +2686,26 @@
       google.script.run
         .withSuccessHandler(function(response) {
           if (response && response.success) {
-            cargarRolUsuario(response);
+            // Guardar password en respuesta si recordamos sesión
+            if (rememberChecked) response.password = passwordInput;
+            cargarRolUsuario(response, rememberChecked);
           } else {
             ocultarCarga();
-            mostrarErrorLogin(response ? response.message : "El correo ingresado no es válido.");
+            mostrarErrorLogin(response ? response.message : "Credenciales inválidas.");
           }
         })
         .withFailureHandler(function(err) {
           ocultarCarga();
           mostrarErrorLogin("Error al conectar: " + err.toString());
         })
-        .loginUsuario(emailInput);
+        .loginUsuario(usernameInput, passwordInput);
     }
 
-    function ejecutarLoginDirecto(email) {
+    function ejecutarLoginDirecto(username, password) {
       google.script.run
         .withSuccessHandler(function(response) {
           if (response && response.success) {
-            cargarRolUsuario(response);
+            cargarRolUsuario(response, !!password);
           } else {
             AuthService.clearSession();
             ocultarCarga();
@@ -2647,14 +2717,15 @@
           ocultarCarga();
           mostrarPantalla("login-view");
         })
-        .loginUsuario(email);
+        .loginUsuario(username, password);
     }
 
-    function cargarRolUsuario(userInfo) {
-      AuthService.setSession(userInfo);
+    function cargarRolUsuario(userInfo, remember = false) {
+      AuthService.setSession(userInfo, remember);
       estadoApp.userEmail = userInfo.email;
       estadoApp.role = userInfo.role;
       estadoApp.userName = userInfo.name;
+      estadoApp.username = userInfo.username;
       
       const config = RoleAccessController.applyRoleConfig(userInfo.role);
       
@@ -3654,7 +3725,10 @@
 
     // MODAL: ALTA DE NUEVO SOCIO
     function abrirModalAltaSocio() {
-      document.getElementById("form-socio-name").value = "";
+      document.getElementById("form-socio-firstname").value = "";
+      document.getElementById("form-socio-lastname").value = "";
+      document.getElementById("form-socio-username").value = "";
+      document.getElementById("form-socio-password").value = "";
       document.getElementById("form-socio-email").value = "";
       if (document.getElementById("form-socio-role")) document.getElementById("form-socio-role").value = "Deportista";
       document.getElementById("form-socio-dni").value = "";
@@ -3675,7 +3749,10 @@
     }
 
     function confirmarAltaSocio() {
-      const name = document.getElementById("form-socio-name").value.trim();
+      const firstName = document.getElementById("form-socio-firstname").value.trim();
+      const lastName = document.getElementById("form-socio-lastname").value.trim();
+      const username = document.getElementById("form-socio-username").value.trim().toLowerCase();
+      const password = document.getElementById("form-socio-password").value.trim();
       const email = document.getElementById("form-socio-email").value.trim().toLowerCase();
       const role = document.getElementById("form-socio-role") ? document.getElementById("form-socio-role").value : "Deportista";
       const dni = document.getElementById("form-socio-dni").value.trim();
@@ -3689,15 +3766,24 @@
       const contactPhone = document.getElementById("form-socio-contactphone").value.trim();
       const notes = document.getElementById("form-socio-notes").value.trim();
 
-      if (!name || !email) {
-        alert("Por favor completá los campos obligatorios: Nombre y Correo electrónico.");
+      if (!firstName || !lastName || !username || !password || !email) {
+        alert("Por favor completá todos los campos obligatorios: Nombre, Apellido, Usuario, Clave y Correo.");
         return;
       }
 
+      if (password.length !== 4 || isNaN(password)) {
+        alert("La clave de acceso debe ser numérica de exactamente 4 dígitos.");
+        return;
+      }
+
+      const fullName = `${lastName}, ${firstName}`;
+
       const payload = {
-        Name: name,
+        Name: fullName,
         Email: email,
         Role: role,
+        Username: username,
+        Password: password,
         DNI: dni,
         Category: category,
         BirthDate: birthDate,
