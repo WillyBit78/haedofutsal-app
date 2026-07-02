@@ -1,7 +1,7 @@
 {
   "name": "futsal-haedo-erp-local",
   "version": "1.0.0",
-  "description": "Entorno de desarrollo local para el ERP Deportivo de Futsal Haedo",
+  "description": "Entorno de desarrollo local para el ERP Deportivo de Haedo Futsal",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
