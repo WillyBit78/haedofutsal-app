@@ -207,25 +207,31 @@ function obtenerDatosSocio(email) {
     }
     misPagos.sort((a, b) => (b.Month || "").localeCompare(a.Month || ""));
     
-    // 3. Obtener partidos programados para la categoría del deportista
+    // 3. Obtener partidos programados para todas las categorías del deportista
     const misPartidos = [];
     const sheetTorneos = ss.getSheetByName(HOJA_TORNEOS);
     const sheetPartidos = ss.getSheetByName(HOJA_PARTIDOS);
-    
-    if (sheetTorneos && sheetPartidos && socioCategory !== "") {
+
+    // Soportar múltiples categorías separadas por |
+    const socioCategories = socioCategory
+      ? socioCategory.split('|').map(c => c.trim()).filter(Boolean)
+      : [];
+
+    if (sheetTorneos && sheetPartidos && socioCategories.length > 0) {
       const torneosData = sheetTorneos.getDataRange().getValues();
       const tHeaders = torneosData[0];
       const tIdCol = tHeaders.indexOf("Torneo_ID");
       const tCatCol = tHeaders.indexOf("Category");
       const tNameCol = tHeaders.indexOf("Name");
-      
-      // Obtener torneos que disputa su categoría
+
+      // Obtener torneos que disputa cualquiera de sus categorías
       const misTorneosIds = [];
       const torneosMap = {};
       for (let i = 1; i < torneosData.length; i++) {
-        if (getVal(torneosData[i], tCatCol) === socioCategory) {
+        const tCat = getVal(torneosData[i], tCatCol);
+        if (socioCategories.includes(tCat)) {
           const tId = getVal(torneosData[i], tIdCol);
-          misTorneosIds.push(tId);
+          if (!misTorneosIds.includes(tId)) misTorneosIds.push(tId);
           torneosMap[tId] = getVal(torneosData[i], tNameCol);
         }
       }
