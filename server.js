@@ -1,5 +1,5 @@
 /**
- * Futsal Haedo ERP - Servidor de Desarrollo Local (Simulador Apps Script)
+ * Haedo Futsal ERP - Servidor de Desarrollo Local (Simulador Apps Script)
  * Ejecuta este servidor con Node.js para probar la aplicación al 100% en localhost.
  * 
  * Este script simula el motor de Google Apps Script y Google Sheets, leyendo/escribiendo
@@ -648,7 +648,7 @@ app.listen(PORT, '0.0.0.0', () => {
   }
   
   console.log(`\n======================================================`);
-  console.log(`⚽ ERP Futsal Haedo corriendo!`);
+  console.log(`⚽ ERP Haedo Futsal corriendo!`);
   console.log(`💻 En esta PC: http://localhost:${PORT}`);
   addresses.forEach(ip => {
     console.log(`📱 En tu Red Wi-Fi (celulares/tablets): http://${ip}:${PORT}`);
