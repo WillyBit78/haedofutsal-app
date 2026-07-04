@@ -1063,6 +1063,152 @@ function registrarPagoTransferenciaComprobante(paymentId, email, amount, month, 
   }
 }
 
+/**
+ * Actualiza la clave de acceso numérica de un usuario.
+ */
+function actualizarClaveUsuario(email, nuevaClave) {
+  try {
+    const ss = getSpreadsheet();
+    const sheet = ss.getSheetByName(HOJA_USUARIOS);
+    if (!sheet) throw new Error("No se encontró la hoja de usuarios.");
+
+    const emailClean = (email || "").trim().toLowerCase();
+    const claveClean = (nuevaClave || "").toString().trim();
+
+    if (claveClean.length !== 4 || isNaN(claveClean)) {
+      throw new Error("La clave debe tener exactamente 4 dígitos numéricos.");
+    }
+
+    const data = sheet.getDataRange().getValues();
+    const headers = data[0];
+    const emailColIdx = headers.indexOf("Email");
+    const passColIdx = headers.indexOf("Password");
+
+    if (emailColIdx === -1 || passColIdx === -1) {
+      throw new Error("Estructura de la hoja de usuarios inválida.");
+    }
+
+    let foundRowIdx = -1;
+    for (let i = 1; i < data.length; i++) {
+      if ((data[i][emailColIdx] || "").toString().toLowerCase().trim() === emailClean) {
+        foundRowIdx = i + 1; // +1 for headers
+        break;
+      }
+    }
+
+    if (foundRowIdx === -1) {
+      throw new Error("No se encontró ningún usuario con el correo especificado.");
+    }
+
+    // Actualizar clave en la hoja
+    sheet.getRange(foundRowIdx, passColIdx + 1).setValue(claveClean);
+
+    return { success: true, message: "Clave actualizada con éxito." };
+  } catch (error) {
+    console.error("Error en actualizarClaveUsuario:", error);
+    return { success: false, message: error.message };
+  }
+}
+
+/**
+ * Genera un token de restablecimiento y envía un correo con el link correspondiente.
+ */
+function solicitarRestablecimientoClave(email, origin) {
+  try {
+    const ss = getSpreadsheet();
+    const sheet = ss.getSheetByName(HOJA_USUARIOS);
+    if (!sheet) throw new Error("No se encontró la hoja de usuarios.");
+
+    const emailClean = (email || "").trim().toLowerCase();
+    const data = sheet.getDataRange().getValues();
+    const headers = data[0];
+    const emailColIdx = headers.indexOf("Email");
+    const nameColIdx = headers.indexOf("Name");
+
+    if (emailColIdx === -1) {
+      throw new Error("Estructura de la hoja de usuarios inválida.");
+    }
+
+    let foundRowIdx = -1;
+    let userName = "Socio";
+    for (let i = 1; i < data.length; i++) {
+      if ((data[i][emailColIdx] || "").toString().toLowerCase().trim() === emailClean) {
+        foundRowIdx = i + 1;
+        if (nameColIdx !== -1) {
+          userName = data[i][nameColIdx] || "Socio";
+        }
+        break;
+      }
+    }
+
+    if (foundRowIdx === -1) {
+      return { success: false, message: "El correo ingresado no pertenece a ningún socio registrado." };
+    }
+
+    // Generar un token aleatorio simple
+    const token = Math.floor(100000 + Math.random() * 900000).toString();
+    
+    // Guardar token en el cache
+    const cache = CacheService.getScriptCache();
+    cache.put("reset-token-" + emailClean, token, 900); // 15 minutos
+
+    // Construir el link
+    const resetLink = origin + "?action=reset&email=" + encodeURIComponent(emailClean) + "&token=" + token;
+
+    // Enviar el correo
+    const subject = "Restablecer Clave - Haedo Futsal";
+    const body = "Hola " + userName + ",\n\n" +
+                 "Recibimos una solicitud para restablecer la clave numérica de tu cuenta en Haedo Futsal.\n\n" +
+                 "Para ingresar tu nueva clave, hacé click en el siguiente enlace (enlace válido por 15 minutos):\n" +
+                 resetLink + "\n\n" +
+                 "Si no solicitaste este cambio, podés ignorar este correo de forma segura.\n\n" +
+                 "Saludos,\n" +
+                 "Administración - Haedo Futsal";
+
+    MailApp.sendEmail(emailClean, subject, body);
+
+    return { success: true, message: "Correo de restablecimiento enviado." };
+  } catch (error) {
+    console.error("Error en solicitarRestablecimientoClave:", error);
+    return { success: false, message: error.message };
+  }
+}
+
+/**
+ * Valida el token y restablece la clave del usuario.
+ */
+function restablecerClaveConToken(email, token, nuevaClave) {
+  try {
+    const emailClean = (email || "").trim().toLowerCase();
+    const tokenClean = (token || "").trim();
+    const claveClean = (nuevaClave || "").toString().trim();
+
+    if (claveClean.length !== 4 || isNaN(claveClean)) {
+      throw new Error("La clave debe tener exactamente 4 dígitos numéricos.");
+    }
+
+    // Verificar token en el cache
+    const cache = CacheService.getScriptCache();
+    const cachedToken = cache.get("reset-token-" + emailClean);
+
+    if (!cachedToken || cachedToken !== tokenClean) {
+      throw new Error("El enlace de restablecimiento es inválido o ha expirado.");
+    }
+
+    // Actualizar la clave
+    const res = actualizarClaveUsuario(emailClean, claveClean);
+    if (!res.success) throw new Error(res.message);
+
+    // Borrar token del cache
+    cache.remove("reset-token-" + emailClean);
+
+    return { success: true, message: "Clave restablecida con éxito." };
+  } catch (error) {
+    console.error("Error en restablecerClaveConToken:", error);
+    return { success: false, message: error.message };
+  }
+}
+
 // ==========================================
 // FUNCIONES AUXILIARES INTERNAS
 // ==========================================
