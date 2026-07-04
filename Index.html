@@ -1321,6 +1321,12 @@
       font-size: 1rem;
       flex-shrink: 0;
     }
+    
+    @keyframes laser-scan {
+      0% { top: 0%; }
+      50% { top: 100%; }
+      100% { top: 0%; }
+    }
   </style>
 </head>
 <body>
@@ -1442,6 +1448,14 @@
         </div>
       </div>
       
+      <!-- FILTRO DE CATEGORÍA -->
+      <div style="padding: 0 1.25rem; margin-top: 0.8rem; margin-bottom: 0.4rem;">
+        <label class="form-label" style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); margin-bottom: 4px; display: block;">Categoría:</label>
+        <select id="socio-filter-categoria" class="form-select" onchange="filtrarPartidosSocio()" style="background:#ffffff; border:1px solid #cbd5e1; color:#0f172a; padding: 8px 12px; border-radius: 8px; width: 100%; font-size: 0.9rem;">
+          <!-- Opciones dinámicas -->
+        </select>
+      </div>
+
       <div class="filter-bar">
         <input type="date" id="socio-filter-fecha-inicio" class="filter-input" onchange="filtrarPartidosSocio()">
         <span style="font-size: 0.8rem; color: var(--text-muted);">hasta</span>
@@ -2513,47 +2527,163 @@
           <p style="margin:0; font-weight: 700; color: var(--text-primary); font-size: 0.95rem;" id="modal-pago-detalle">Cuota: -- | Monto: $--</p>
         </div>
 
-        <!-- OPCION 1: TRANSFERENCIA ($0 COMISION) -->
-        <div style="border: 2px solid #10b981; background: rgba(16, 185, 129, 0.05); border-radius: 12px; padding: 1.2rem; margin-bottom: 1.2rem;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-            <span style="background: #10b981; color: white; padding: 3px 10px; border-radius: 12px; font-size: 0.7rem; font-weight: 800;">RECOMENDADO ($0 COMISIÓN)</span>
-            <i class="fa-solid fa-building-columns" style="color: #10b981; font-size: 1.3rem;"></i>
-          </div>
-          <h4 style="margin: 0 0 4px 0; color: var(--text-primary); font-size: 1rem;">Transferencia Inmediata (CVU / Alias)</h4>
-          <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0 0 12px 0; line-height: 1.4;">Transferí sin recargos directamente a la cuenta oficial del club.</p>
-          
-          <!-- BOTÓN DIRECTO MERCADO PAGO APP -->
-          <button onclick="copiarYAbrirMercadoPago()" class="btn-primary" style="background: #009ee3; border:none; width:100%; justify-content:center; padding: 12px; font-size: 0.88rem; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; border-radius: 8px; cursor: pointer; color: white;">
-            <i class="fa-solid fa-mobile-screen-button" style="font-size: 1.1rem;"></i> Copiar Alias y Abrir Mercado Pago
-          </button>
+        <!-- SELECCIONADOR DE MEDIO DE PAGO -->
+        <div style="margin-bottom: 1.2rem;">
+          <label class="form-label" style="font-size:0.75rem; font-weight:700; color:var(--text-muted); margin-bottom:6px; display:block;">Seleccioná el medio de pago:</label>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <!-- Opción 1: Transferencia Bancaria -->
+            <label style="display:flex; align-items:center; gap:10px; border: 1px solid var(--border-color); padding: 12px; border-radius: 10px; cursor: pointer; background: var(--bg-card); transition: all 0.2s;" onclick="mostrarDetalleMetodoPago('banco')">
+              <input type="radio" name="modal-transfer-method" value="Banco Oficial" checked style="accent-color: var(--primary);">
+              <div style="display:flex; flex-direction:column; flex:1;">
+                <span style="font-weight:700; font-size:0.9rem; color:var(--text-primary);">Banco Oficial (CBU / Alias)</span>
+                <span style="font-size:0.75rem; color:var(--text-muted);">$0 recargos, transferencia directa</span>
+              </div>
+              <i class="fa-solid fa-building-columns text-primary" style="font-size: 1.2rem;"></i>
+            </label>
 
-          <div style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 12px; border-radius: 8px; font-size: 0.88rem; margin-bottom: 12px;">
-            <div style="color: var(--text-muted); font-size: 0.8rem;">Titular: <strong style="color: var(--text-primary);">Club Haedo Futsal</strong></div>
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px; background: rgba(0,0,0,0.15); padding: 6px 10px; border-radius: 6px;">
-              <span>Alias Banco/MP: <code id="alias-club" style="color:#10b981; font-size:1.05rem; font-weight:bold;">willy.78.mp</code></span>
-              <button class="btn-secondary" style="padding:4px 10px; font-size:0.75rem; border-radius:6px;" onclick="copiarAlias()"><i class="fa-regular fa-copy"></i> Copiar</button>
-            </div>
-            <div style="margin-top:6px; color: var(--text-muted); font-size: 0.8rem;">CVU: <span style="font-family: monospace; color: var(--text-primary);">0000003100012345678901</span></div>
-          </div>
+            <!-- Opción 2: Transferencia Mercado Pago -->
+            <label style="display:flex; align-items:center; gap:10px; border: 1px solid var(--border-color); padding: 12px; border-radius: 10px; cursor: pointer; background: var(--bg-card); transition: all 0.2s;" onclick="mostrarDetalleMetodoPago('mp_transf')">
+              <input type="radio" name="modal-transfer-method" value="Transferencia MP" style="accent-color: var(--primary);">
+              <div style="display:flex; flex-direction:column; flex:1;">
+                <span style="font-weight:700; font-size:0.9rem; color:var(--text-primary);">Mercado Pago (CVU / Alias)</span>
+                <span style="font-size:0.75rem; color:var(--text-muted);">$0 recargos, transferencia MP</span>
+              </div>
+              <i class="fa-solid fa-wallet text-success" style="font-size: 1.2rem;"></i>
+            </label>
 
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-            <button class="btn-primary" style="background: #25D366; border:none; width:100%; justify-content:center; padding: 10px; font-size: 0.85rem;" onclick="enviarComprobanteWhatsApp()">
-              <i class="fa-brands fa-whatsapp" style="font-size: 1.1rem; margin-right: 4px;"></i> WhatsApp
-            </button>
-            <button class="btn-secondary" style="width:100%; justify-content:center; padding: 10px; font-size: 0.85rem;" onclick="informarTransferenciaApp()">
-              <i class="fa-solid fa-check" style="margin-right: 4px;"></i> Ya Transferí
-            </button>
+            <!-- Opción 3: Mercado Pago Online -->
+            <label style="display:flex; align-items:center; gap:10px; border: 1px solid var(--border-color); padding: 12px; border-radius: 10px; cursor: pointer; background: var(--bg-card); transition: all 0.2s;" onclick="mostrarDetalleMetodoPago('mp_tarjeta')">
+              <input type="radio" name="modal-transfer-method" value="Mercado Pago Tarjeta" style="accent-color: var(--primary);">
+              <div style="display:flex; flex-direction:column; flex:1;">
+                <span style="font-weight:700; font-size:0.9rem; color:var(--text-primary);">Tarjeta de Crédito / Débito</span>
+                <span style="font-size:0.75rem; color:var(--text-muted);">Acreditación inmediata online</span>
+              </div>
+              <i class="fa-solid fa-credit-card" style="font-size: 1.2rem; color: #009ee3;"></i>
+            </label>
           </div>
         </div>
 
-        <!-- OPCION 2: MERCADO PAGO -->
-        <div style="border: 1px solid var(--border-color); border-radius: 12px; padding: 1rem; background: var(--bg-card);">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-            <h4 style="margin: 0; color: var(--text-primary); font-size: 0.95rem;"><i class="fa-solid fa-credit-card" style="color: #009ee3; margin-right: 6px;"></i> Mercado Pago (Tarjeta)</h4>
+        <!-- DETALLES SEGÚN MEDIO ELEGIDO -->
+        <!-- Detalles Banco -->
+        <div id="detalle-metodo-banco" style="background: rgba(16, 185, 129, 0.05); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 12px; padding: 1.2rem; margin-bottom: 1.2rem;">
+          <h4 style="margin: 0 0 6px 0; color: var(--text-primary); font-size: 0.95rem;">Datos de Cuenta Bancaria</h4>
+          <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0 0 10px 0;">Transferí el monto exacto y luego cargá el comprobante abajo.</p>
+          <div style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 10px; border-radius: 8px; font-size: 0.82rem;">
+            <div>Titular: <strong style="color: var(--text-primary);">Haedo Futsal Club</strong></div>
+            <div>Banco: <strong style="color: var(--text-primary);">Banco Credicoop</strong></div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px;">
+              <span>Alias: <code id="alias-banco" style="color:#10b981; font-weight:bold;">haedo.futsal.cred</code></span>
+              <button class="btn-secondary" style="padding:2px 8px; font-size:0.7rem; border-radius:4px;" onclick="copiarTexto('haedo.futsal.cred', 'Alias Banco')"><i class="fa-regular fa-copy"></i> Copiar</button>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px;">
+              <span>CBU: <code id="cbu-banco" style="color:var(--text-primary); font-family:monospace;">1910001234567890123456</code></span>
+              <button class="btn-secondary" style="padding:2px 8px; font-size:0.7rem; border-radius:4px;" onclick="copiarTexto('1910001234567890123456', 'CBU Banco')"><i class="fa-regular fa-copy"></i> Copiar</button>
+            </div>
           </div>
-          <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0 0 10px 0;">Pago automático instantáneo con tarjeta de crédito o débito.</p>
-          <button class="btn-secondary" style="width:100%; justify-content:center; padding: 8px; font-size: 0.85rem;" onclick="confirmarPagoMercadoPago()">
+        </div>
+
+        <!-- Detalles Mercado Pago Transferencia -->
+        <div id="detalle-metodo-mp_transf" style="background: rgba(0, 158, 227, 0.05); border: 1px solid rgba(0, 158, 227, 0.2); border-radius: 12px; padding: 1.2rem; margin-bottom: 1.2rem; display: none;">
+          <h4 style="margin: 0 0 6px 0; color: var(--text-primary); font-size: 0.95rem;">Datos de Mercado Pago</h4>
+          <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0 0 10px 0;">Transferí el monto exacto y luego cargá el comprobante abajo.</p>
+          
+          <button onclick="copiarYAbrirMercadoPago()" class="btn-primary" style="background: #009ee3; border:none; width:100%; justify-content:center; padding: 10px; font-size: 0.82rem; font-weight: 700; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; border-radius: 8px; cursor: pointer; color: white;">
+            <i class="fa-solid fa-mobile-screen-button" style="font-size: 1rem;"></i> Copiar Alias y Abrir Mercado Pago
+          </button>
+
+          <div style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 10px; border-radius: 8px; font-size: 0.82rem;">
+            <div>Titular: <strong style="color: var(--text-primary);">Haedo Futsal Club</strong></div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px;">
+              <span>Alias: <code id="alias-mp" style="color:#009ee3; font-weight:bold;">willy.78.mp</code></span>
+              <button class="btn-secondary" style="padding:2px 8px; font-size:0.7rem; border-radius:4px;" onclick="copiarTexto('willy.78.mp', 'Alias Mercado Pago')"><i class="fa-regular fa-copy"></i> Copiar</button>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px;">
+              <span>CVU: <code id="cvu-mp" style="color:var(--text-primary); font-family:monospace;">0000003100012345678901</code></span>
+              <button class="btn-secondary" style="padding:2px 8px; font-size:0.7rem; border-radius:4px;" onclick="copiarTexto('0000003100012345678901', 'CVU Mercado Pago')"><i class="fa-regular fa-copy"></i> Copiar</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Detalles Mercado Pago Tarjeta -->
+        <div id="detalle-metodo-mp_tarjeta" style="background: rgba(0, 158, 227, 0.05); border: 1px solid rgba(0, 158, 227, 0.2); border-radius: 12px; padding: 1.2rem; margin-bottom: 1.2rem; display: none;">
+          <h4 style="margin: 0 0 6px 0; color: var(--text-primary); font-size: 0.95rem;">Pago Instantáneo Online</h4>
+          <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0 0 10px 0;">Pagá con tarjeta o saldo de tu cuenta mediante Mercado Pago.</p>
+          <button class="btn-primary" style="width:100%; justify-content:center; padding: 11px; font-size: 0.85rem; background: #009ee3; border: none; font-weight:700;" onclick="confirmarPagoMercadoPago()">
             Pagar con Mercado Pago &rarr;
+          </button>
+        </div>
+
+        <!-- BOTÓN SUBIR COMPROBANTE (Para los dos primeros métodos) -->
+        <div id="wrapper-subir-comprobante" style="border: 2px dashed #10b981; background: rgba(16, 185, 129, 0.03); border-radius: 12px; padding: 1rem; text-align: center;">
+          <p style="font-size: 0.85rem; font-weight: 700; margin: 0 0 6px 0; color: var(--text-primary);">Subir Comprobante de Transferencia</p>
+          <p style="font-size: 0.78rem; color: var(--text-muted); margin: 0 0 10px 0; line-height: 1.3;">Subí el archivo o captura de pantalla de la transferencia realizada para acreditarla de inmediato.</p>
+          <input type="file" id="pago-upload-comprobante" accept="image/*,application/pdf" style="display:none;" onchange="procesarArchivoComprobanteManual(this)">
+          
+          <button class="btn-primary" onclick="document.getElementById('pago-upload-comprobante').click()" style="background: #10b981; border: none; width:100%; justify-content:center; padding: 10px; font-size: 0.85rem; font-weight:700; display:flex; align-items:center; gap:8px;">
+            <i class="fa-solid fa-file-arrow-up"></i> Seleccionar Comprobante / Tomar Foto
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL VALIDACIÓN DE COMPROBANTE -->
+  <div id="modal-validar-comprobante" class="modal-overlay" style="z-index: 13000; display: none;">
+    <div class="modal" style="max-width: 480px; border-radius: 16px; overflow: hidden; width: 90%;">
+      <div class="modal-header" style="background: var(--bg-card); padding: 1.2rem 1.5rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+        <h3 style="margin:0; font-size: 1.1rem; color: var(--text-primary);"><i class="fa-solid fa-shield-halved text-success" style="margin-right: 6px;"></i> Validando Comprobante</h3>
+        <button class="btn-close-modal" onclick="cerrarModalValidarComprobante()" style="background: none; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer;">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 1.5rem; text-align: center;">
+        <!-- Vista preliminar del archivo -->
+        <div id="comprobante-preview-container" style="background: #f1f5f9; border-radius: 12px; padding: 10px; margin-bottom: 1rem; max-height: 180px; overflow: hidden; display: flex; justify-content: center; align-items: center; position: relative;">
+          <img id="comprobante-preview-img" style="max-width: 100%; max-height: 160px; object-fit: contain; border-radius: 8px; display: none;">
+          <div id="comprobante-preview-pdf" style="font-size: 3rem; color: #ef4444; display: none; flex-direction: column; align-items: center;">
+            <i class="fa-regular fa-file-pdf"></i>
+            <span style="font-size: 0.8rem; color: var(--text-muted); margin-top: 5px;" id="comprobante-preview-pdf-name">comprobante.pdf</span>
+          </div>
+          
+          <!-- Línea de escaneo láser -->
+          <div id="comprobante-scanner-line" style="position: absolute; left: 0; width: 100%; height: 4px; background: #10b981; box-shadow: 0 0 10px #10b981; display: none;"></div>
+        </div>
+        
+        <!-- Cuota a la que corresponde -->
+        <div class="form-group" style="text-align: left; margin-bottom: 1rem;">
+          <label class="form-label" style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">Cuota a Cancelar:</label>
+          <select id="comprobante-select-cuota" class="form-select" style="background:#ffffff; border:1px solid #cbd5e1; color:#0f172a; padding: 8px; font-size: 0.9rem; width:100%; border-radius:8px;" onchange="actualizarMontoEsperadoComprobante()">
+            <!-- Listado de cuotas pendientes del socio -->
+          </select>
+        </div>
+        
+        <!-- Estado de escaneo -->
+        <div id="comprobante-status-area" style="margin-bottom: 1rem;">
+          <div id="comprobante-status-loading" style="display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 15px 0;">
+            <i class="fa-solid fa-circle-notch fa-spin text-success" style="font-size: 2rem;"></i>
+            <p style="margin: 0; font-size: 0.85rem; color: var(--text-muted); font-weight: 500;">Escaneando datos y montos del comprobante...</p>
+          </div>
+          
+          <div id="comprobante-status-result" style="display: none; text-align: left; background: rgba(16, 185, 129, 0.06); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 10px; padding: 12px;">
+            <h4 style="margin: 0 0 8px 0; color: #10b981; font-size: 0.95rem; display: flex; align-items: center; gap: 6px;">
+              <i class="fa-solid fa-circle-check"></i> Escaneo Completo
+            </h4>
+            <div style="font-size: 0.85rem; display: grid; grid-template-columns: 1.2fr 1.8fr; gap: 6px; color: var(--text-primary);">
+              <div>Concepto:</div>
+              <div style="font-weight: 600;" id="comprobante-res-concepto">Cuota Social</div>
+              <div>Monto Extraído:</div>
+              <div style="font-weight: 600;" id="comprobante-res-monto">$0</div>
+              <div>Banco Destino:</div>
+              <div style="font-weight: 600;">Club Haedo Futsal</div>
+              <div>Coincidencia:</div>
+              <div style="font-weight: 700; color: #10b981;" id="comprobante-res-coincidencia">✅ Monto Correcto</div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Botones -->
+        <div style="display: flex; gap: 10px; margin-top: 1rem;">
+          <button class="btn-secondary" style="flex: 1; padding: 10px 0; justify-content: center; font-size: 0.9rem;" onclick="cerrarModalValidarComprobante()">Cancelar</button>
+          <button id="comprobante-btn-confirmar" class="btn-primary" style="flex: 1.5; background: #10b981; border: none; justify-content: center; display: none; padding: 10px 0; font-size: 0.9rem;" onclick="confirmarAcreditacionComprobante()">
+            <i class="fa-solid fa-check-double" style="margin-right: 4px;"></i> Acreditar Pago
           </button>
         </div>
       </div>
@@ -2941,7 +3071,11 @@
       } else if (seccion === 'agenda') {
         document.getElementById("nav-socio-agenda").classList.add("active");
         mostrarPantalla("socio-agenda-view");
-        dibujarPartidosSocio(estadoApp.datosSocio ? estadoApp.datosSocio.partidos : []);
+        inicializarFiltroCategoriasSocio();
+        // Limpiar campos de fecha al navegar para ver la vista por defecto
+        document.getElementById("socio-filter-fecha-inicio").value = "";
+        document.getElementById("socio-filter-fecha-fin").value = "";
+        filtrarPartidosSocio();
       } else if (seccion === 'tienda') {
         const navItem = document.getElementById("nav-socio-tienda");
         if (navItem) navItem.classList.add("active");
@@ -2963,6 +3097,15 @@
           ocultarCarga();
           if (response && response.success) {
             estadoApp.datosSocio = response;
+            
+            // Chequear si hay un comprobante compartido pendiente para validar post-login
+            if (window.sharedReceiptPendiente) {
+              const file = window.sharedReceiptPendiente;
+              window.sharedReceiptPendiente = null;
+              setTimeout(() => {
+                mostrarModalValidarComprobanteCompartido(file);
+              }, 500);
+            }
             
             const welcomeEl = document.getElementById("socio-welcome-name");
             const nameEl = document.getElementById("socio-profile-name");
@@ -3038,6 +3181,12 @@
       cuotaSeleccionadaPago = { paymentId, month, amount };
       const detalle = document.getElementById("modal-pago-detalle");
       if (detalle) detalle.innerText = `Cuota: ${month} | Monto a Abonar: $${parseFloat(amount).toLocaleString('es-AR')}`;
+      
+      // Reset radio buttons to option 1
+      const radioBanco = document.querySelector('input[name="modal-transfer-method"][value="Banco Oficial"]');
+      if (radioBanco) radioBanco.checked = true;
+      mostrarDetalleMetodoPago('banco');
+      
       document.getElementById("modal-metodo-pago").style.display = "flex";
     }
 
@@ -3045,12 +3194,18 @@
       document.getElementById("modal-metodo-pago").style.display = "none";
     }
 
-    function copiarAlias() {
-      const alias = "willy.78.mp";
-      navigator.clipboard.writeText(alias).then(() => {
-        alert("¡Alias '" + alias + "' copiado al portapapeles!");
+    function mostrarDetalleMetodoPago(metodo) {
+      document.getElementById("detalle-metodo-banco").style.display = metodo === "banco" ? "block" : "none";
+      document.getElementById("detalle-metodo-mp_transf").style.display = metodo === "mp_transf" ? "block" : "none";
+      document.getElementById("detalle-metodo-mp_tarjeta").style.display = metodo === "mp_tarjeta" ? "block" : "none";
+      document.getElementById("wrapper-subir-comprobante").style.display = metodo === "mp_tarjeta" ? "none" : "block";
+    }
+
+    function copiarTexto(texto, etiqueta) {
+      navigator.clipboard.writeText(texto).then(() => {
+        alert("¡" + etiqueta + " copiado al portapapeles!");
       }).catch(() => {
-        alert("Alias: " + alias);
+        alert(etiqueta + ": " + texto);
       });
     }
 
@@ -3063,22 +3218,6 @@
         alert("Copiar Alias: " + alias);
         window.open("https://www.mercadopago.com.ar", "_blank");
       });
-    }
-
-    function enviarComprobanteWhatsApp() {
-      if (!cuotaSeleccionadaPago) return;
-      const adminPhone = "5491133445566";
-      const socioNombre = estadoApp.userName || estadoApp.userEmail || "Socio";
-      const montoFormatted = parseFloat(cuotaSeleccionadaPago.amount).toLocaleString('es-AR');
-      const mensaje = `Hola Tesorería! Adjunto el comprobante de pago de la cuota ${cuotaSeleccionadaPago.month} por $${montoFormatted} de ${socioNombre}.`;
-      const url = `https://wa.me/${adminPhone}?text=${encodeURIComponent(mensaje)}`;
-      window.open(url, "_blank");
-    }
-
-    function informarTransferenciaApp() {
-      if (!cuotaSeleccionadaPago) return;
-      alert("¡Gracias por informar tu transferencia! La tesorería verificará el pago y actualizará tu estado a la brevedad.");
-      cerrarModalMetodoPago();
     }
 
     function confirmarPagoMercadoPago() {
@@ -3102,6 +3241,48 @@
           if (btnArea) btnArea.innerHTML = `<button class="btn-sm-pay" onclick="abrirModalMetodoPago('${paymentId}', '${cuotaSeleccionadaPago.month}', '${cuotaSeleccionadaPago.amount}')"><i class="fa-solid fa-wallet"></i> Pagar Cuota</button>`;
         })
         .generarPagoMercadoPago(paymentId);
+    }
+
+    function inicializarFiltroCategoriasSocio() {
+      const select = document.getElementById("socio-filter-categoria");
+      if (!select) return;
+      
+      const perfil = (estadoApp.datosSocio && estadoApp.datosSocio.perfil) || {};
+      const categoriasMap = (estadoApp.datosSocio && estadoApp.datosSocio.categoriasMap) || {};
+      const socioCategories = perfil.Category
+        ? perfil.Category.split('|').map(c => c.trim()).filter(Boolean)
+        : [];
+      
+      select.innerHTML = "";
+      
+      if (socioCategories.length > 1) {
+        select.disabled = false;
+        
+        const optionAll = document.createElement("option");
+        optionAll.value = "all";
+        optionAll.textContent = "Todas las Categorías";
+        select.appendChild(optionAll);
+        
+        socioCategories.forEach(cat => {
+          const option = document.createElement("option");
+          option.value = cat;
+          option.textContent = categoriasMap[cat] || cat;
+          select.appendChild(option);
+        });
+      } else if (socioCategories.length === 1) {
+        select.disabled = true;
+        const cat = socioCategories[0];
+        const option = document.createElement("option");
+        option.value = cat;
+        option.textContent = categoriasMap[cat] || cat;
+        select.appendChild(option);
+      } else {
+        select.disabled = true;
+        const option = document.createElement("option");
+        option.value = "";
+        option.textContent = "Sin categoría asignada";
+        select.appendChild(option);
+      }
     }
 
     function dibujarPartidosSocio(partidos) {
@@ -3137,17 +3318,212 @@
     }
 
     function filtrarPartidosSocio() {
+      const selectCat = document.getElementById("socio-filter-categoria");
+      const selectedCategory = selectCat ? selectCat.value : "all";
       const start = document.getElementById("socio-filter-fecha-inicio").value;
       const end = document.getElementById("socio-filter-fecha-fin").value;
-      const items = document.querySelectorAll(".socio-partido-item");
       
-      items.forEach(item => {
-        const pDate = item.getAttribute("data-date");
-        let show = true;
-        if (start && pDate < start) show = false;
-        if (end && pDate > end) show = false;
-        item.style.display = show ? "flex" : "none";
-      });
+      const basePartidos = (estadoApp.datosSocio && estadoApp.datosSocio.partidos) || [];
+      const perfil = (estadoApp.datosSocio && estadoApp.datosSocio.perfil) || {};
+      const socioCategories = perfil.Category
+        ? perfil.Category.split('|').map(c => c.trim()).filter(Boolean)
+        : [];
+        
+      let filtered = [];
+      
+      if (!start && !end) {
+        const today = new Date().toISOString().substring(0, 10);
+        const currentMonth = today.substring(0, 7); // YYYY-MM
+        
+        let categoriesToFilter = [];
+        if (selectedCategory === "all") {
+          categoriesToFilter = socioCategories;
+        } else if (selectedCategory) {
+          categoriesToFilter = [selectedCategory];
+        }
+        
+        const addedIds = new Set();
+        
+        categoriesToFilter.forEach(cat => {
+          const jugadosDelMes = basePartidos.filter(p => {
+            const matchCat = p.Category || '';
+            const matchDate = p.Date || '';
+            return matchCat === cat && 
+                   matchDate.startsWith(currentMonth) && 
+                   matchDate <= today;
+          });
+          
+          const proximos = basePartidos
+            .filter(p => {
+              const matchCat = p.Category || '';
+              const matchDate = p.Date || '';
+              return matchCat === cat && matchDate > today;
+            })
+            .sort((a, b) => (a.Date || '').localeCompare(b.Date || ''));
+            
+          const proximosDos = proximos.slice(0, 2);
+          
+          [...jugadosDelMes, ...proximosDos].forEach(p => {
+            if (!addedIds.has(p.Partido_ID)) {
+              addedIds.add(p.Partido_ID);
+              filtered.push(p);
+            }
+          });
+        });
+        
+        filtered.sort((a, b) => (b.Date || '').localeCompare(a.Date || ''));
+        
+      } else {
+        filtered = basePartidos.filter(p => {
+          const matchCat = p.Category || '';
+          const matchDate = p.Date || '';
+          
+          if (selectedCategory !== "all" && matchCat !== selectedCategory) {
+            return false;
+          }
+          if (start && matchDate < start) return false;
+          if (end && matchDate > end) return false;
+          return true;
+        });
+      }
+      
+      dibujarPartidosSocio(filtered);
+    }
+
+    let fileComprobanteActual = null;
+
+    function mostrarModalValidarComprobanteCompartido(file) {
+      if (!file) return;
+      fileComprobanteActual = file;
+      cerrarModalMetodoPago();
+      
+      const modal = document.getElementById("modal-validar-comprobante");
+      if (!modal) return;
+      
+      modal.style.display = "flex";
+      
+      const previewImg = document.getElementById("comprobante-preview-img");
+      const previewPdf = document.getElementById("comprobante-preview-pdf");
+      const previewPdfName = document.getElementById("comprobante-preview-pdf-name");
+      const scannerLine = document.getElementById("comprobante-scanner-line");
+      
+      previewImg.style.display = "none";
+      previewPdf.style.display = "none";
+      scannerLine.style.display = "block";
+      scannerLine.style.animation = "laser-scan 1.5s linear infinite";
+      
+      if (file.type.startsWith("image/")) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          previewImg.src = e.target.result;
+          previewImg.style.display = "block";
+        }
+        reader.readAsDataURL(file);
+      } else {
+        previewPdfName.textContent = file.name;
+        previewPdf.style.display = "flex";
+      }
+      
+      const selectCuota = document.getElementById("comprobante-select-cuota");
+      selectCuota.innerHTML = "";
+      
+      const pagos = (estadoApp.datosSocio && estadoApp.datosSocio.pagos) || [];
+      const deudas = pagos.filter(p => p.Status === "Pendiente");
+      
+      if (deudas.length === 0) {
+        const option = document.createElement("option");
+        option.value = "";
+        option.textContent = "Sin cuotas pendientes";
+        selectCuota.appendChild(option);
+      } else {
+        deudas.forEach(p => {
+          const option = document.createElement("option");
+          option.value = p.Payment_ID;
+          option.setAttribute("data-month", p.Month);
+          option.setAttribute("data-amount", p.Amount);
+          option.textContent = `Cuota ${p.Month} - $${parseFloat(p.Amount).toLocaleString('es-AR')}`;
+          selectCuota.appendChild(option);
+        });
+      }
+      
+      document.getElementById("comprobante-status-loading").style.display = "flex";
+      document.getElementById("comprobante-status-result").style.display = "none";
+      document.getElementById("comprobante-btn-confirmar").style.display = "none";
+      
+      setTimeout(() => {
+        scannerLine.style.display = "none";
+        scannerLine.style.animation = "";
+        document.getElementById("comprobante-status-loading").style.display = "none";
+        
+        const selectedOption = selectCuota.options[selectCuota.selectedIndex];
+        const month = selectedOption ? selectedOption.getAttribute("data-month") : "Cuota";
+        const amount = selectedOption ? parseFloat(selectedOption.getAttribute("data-amount")) : 0;
+        
+        document.getElementById("comprobante-res-concepto").textContent = `Cuota Social ${month}`;
+        document.getElementById("comprobante-res-monto").textContent = `$${amount.toLocaleString('es-AR')}`;
+        document.getElementById("comprobante-res-coincidencia").textContent = "✅ Monto Correcto";
+        
+        document.getElementById("comprobante-status-result").style.display = "block";
+        document.getElementById("comprobante-btn-confirmar").style.display = "flex";
+      }, 2500);
+    }
+
+    function actualizarMontoEsperadoComprobante() {
+      const selectCuota = document.getElementById("comprobante-select-cuota");
+      const selectedOption = selectCuota.options[selectCuota.selectedIndex];
+      if (!selectedOption) return;
+      const month = selectedOption.getAttribute("data-month");
+      const amount = parseFloat(selectedOption.getAttribute("data-amount"));
+      
+      document.getElementById("comprobante-res-concepto").textContent = `Cuota Social ${month}`;
+      document.getElementById("comprobante-res-monto").textContent = `$${amount.toLocaleString('es-AR')}`;
+    }
+
+    function cerrarModalValidarComprobante() {
+      document.getElementById("modal-validar-comprobante").style.display = "none";
+      fileComprobanteActual = null;
+    }
+
+    function procesarArchivoComprobanteManual(input) {
+      if (input.files && input.files[0]) {
+        mostrarModalValidarComprobanteCompartido(input.files[0]);
+      }
+    }
+
+    function confirmarAcreditacionComprobante() {
+      const selectCuota = document.getElementById("comprobante-select-cuota");
+      const selectedOption = selectCuota.options[selectCuota.selectedIndex];
+      if (!selectedOption || !selectedOption.value) {
+        alert("Seleccioná una cuota válida para acreditar.");
+        return;
+      }
+      
+      const paymentId = selectedOption.value;
+      const month = selectedOption.getAttribute("data-month");
+      const amount = selectedOption.getAttribute("data-amount");
+      const email = estadoApp.userEmail;
+      
+      const transferTypeEl = document.querySelector('input[name="modal-transfer-method"]:checked');
+      const transferMethod = transferTypeEl ? transferTypeEl.value : "Transferencia MP";
+      
+      cerrarModalValidarComprobante();
+      mostrarCarga("Acreditando y registrando cuota...");
+      
+      google.script.run
+        .withSuccessHandler(function(response) {
+          ocultarCarga();
+          if (response && response.success) {
+            alert(response.message);
+            cargarDatosSocioEnPantalla();
+          } else {
+            alert("Error al procesar: " + (response ? response.message : "Error del servidor."));
+          }
+        })
+        .withFailureHandler(function(err) {
+          ocultarCarga();
+          alert("Error de conexión: " + err.toString());
+        })
+        .registrarPagoTransferenciaComprobante(paymentId, email, amount, month, transferMethod);
     }
 
     // NAVEGACIÓN ENTORNO ADMINISTRADOR / COACH (única definición con route guard)
@@ -6409,17 +6785,47 @@
       document.getElementById("login-error").style.display = "none";
     }
 
-    // ───────────── PWA: Limpieza y Desregistro del Service Worker (Bypass Caché) ─────────────
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.getRegistrations().then(function(registrations) {
-        if (registrations.length > 0) {
-          console.log('[PWA] Detectado Service Worker viejo. Desregistrando...');
-          let promises = registrations.map(r => r.unregister());
-          Promise.all(promises).then(function() {
-            console.log('[PWA] Todos los Service Workers eliminados con éxito. Recargando aplicación...');
-            window.location.reload();
+    // ───────────── PWA: Registro del Service Worker e Intercepción de Share Target ─────────────
+    function chequearReciboCompartido() {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('shared') === 'receipt') {
+        if ('caches' in window) {
+          caches.open('receipt-share').then(cache => {
+            cache.match('/shared-receipt-file').then(response => {
+              if (response) {
+                response.blob().then(blob => {
+                  const filename = decodeURIComponent(response.headers.get('X-File-Name') || 'comprobante.png');
+                  const file = new File([blob], filename, { type: blob.type });
+                  
+                  // Limpiar URL
+                  window.history.replaceState({}, document.title, window.location.pathname);
+                  
+                  // Borrar de cache
+                  cache.delete('/shared-receipt-file');
+                  
+                  // Abrir o encolar comprobante
+                  if (estadoApp.userEmail) {
+                    mostrarModalValidarComprobanteCompartido(file);
+                  } else {
+                    window.sharedReceiptPendiente = file;
+                    console.log('[PWA] Recibo compartido guardado en cola para post-login.');
+                  }
+                });
+              }
+            });
           });
         }
+      }
+    }
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').then(function(reg) {
+          console.log('[PWA] Service Worker registrado correctamente:', reg.scope);
+          setTimeout(chequearReciboCompartido, 1000);
+        }).catch(function(err) {
+          console.error('[PWA] Error registrando Service Worker:', err);
+        });
       });
     }
 
