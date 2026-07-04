@@ -248,6 +248,46 @@ const mockSpreadsheet = {
   getSheets: () => [{}, {}]
 };
 
+// Simulación de CacheService para tokens de restablecimiento de clave
+const localCache = new Map();
+global.CacheService = {
+  getScriptCache: function() {
+    return {
+      get: function(key) {
+        const entry = localCache.get(key);
+        if (!entry) return null;
+        if (Date.now() > entry.expiry) {
+          localCache.delete(key);
+          return null;
+        }
+        return entry.value;
+      },
+      put: function(key, value, seconds) {
+        localCache.set(key, {
+          value: value,
+          expiry: Date.now() + (seconds * 1000)
+        });
+      },
+      remove: function(key) {
+        localCache.delete(key);
+      }
+    };
+  }
+};
+
+// Simulación de MailApp para envío de correos
+global.MailApp = {
+  sendEmail: function(to, subject, body) {
+    console.log(`\n======================================================`);
+    console.log(`✉️ [EMAIL SIMULADO DE RESTABLECIMIENTO]`);
+    console.log(`Para: ${to}`);
+    console.log(`Asunto: ${subject}`);
+    console.log(`Cuerpo:`);
+    console.log(body);
+    console.log(`======================================================\n`);
+  }
+};
+
 global.SpreadsheetApp = {
   getActiveSpreadsheet: () => mockSpreadsheet,
   openById: () => mockSpreadsheet,
