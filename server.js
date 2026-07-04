@@ -351,6 +351,8 @@ function getSandboxContext() {
     PropertiesService: global.PropertiesService,
     UrlFetchApp: global.UrlFetchApp,
     HtmlService: global.HtmlService,
+    CacheService: global.CacheService,
+    MailApp: global.MailApp,
     console: console,
     parseFloat: parseFloat,
     parseInt: parseInt,
