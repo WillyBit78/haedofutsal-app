@@ -1064,9 +1064,9 @@ function registrarPagoTransferenciaComprobante(paymentId, email, amount, month, 
 }
 
 /**
- * Obtiene los datos personales de un socio por su correo para el formulario público de WhatsApp.
+ * Obtiene los datos personales de un socio por su Email, DNI, Teléfono o Username.
  */
-function obtenerDatosSocioPublico(email) {
+function obtenerDatosSocioPublico(identifier) {
   try {
     const ss = getSpreadsheet();
     const sheetUsers = ss.getSheetByName(HOJA_USUARIOS);
@@ -1075,6 +1075,9 @@ function obtenerDatosSocioPublico(email) {
     const usersData = sheetUsers.getDataRange().getValues();
     const userHeaders = usersData[0];
     const emailColIndex = userHeaders.indexOf("Email");
+    const dniColIndex = userHeaders.indexOf("DNI");
+    const phoneColIndex = userHeaders.indexOf("Phone");
+    const userColIndex = userHeaders.indexOf("Username");
     
     if (emailColIndex === -1) {
       throw new Error("Estructura de la hoja de usuarios inválida.");
@@ -1082,10 +1085,24 @@ function obtenerDatosSocioPublico(email) {
 
     const getVal = (row, idx) => (row && idx !== -1 && idx < row.length && row[idx] !== undefined && row[idx] !== null) ? row[idx].toString().trim() : "";
 
+    const searchVal = (identifier || "").toString().toLowerCase().trim();
+    // Remover caracteres no alfanuméricos para búsquedas limpias de DNI o Teléfono
+    const cleanSearchVal = searchVal.replace(/[^a-z0-9]/g, "");
+
     let perfil = null;
     for (let i = 1; i < usersData.length; i++) {
       const row = usersData[i];
-      if (getVal(row, emailColIndex).toLowerCase() === email.toLowerCase().trim()) {
+      const email = getVal(row, emailColIndex).toLowerCase();
+      const dni = getVal(row, dniColIndex).replace(/[^0-9]/g, "");
+      const phone = getVal(row, phoneColIndex).replace(/[^0-9]/g, "");
+      const username = userColIndex !== -1 ? getVal(row, userColIndex).toLowerCase() : "";
+
+      if (
+        email === searchVal ||
+        (dni && dni === cleanSearchVal) ||
+        (phone && (phone === cleanSearchVal || phone.endsWith(cleanSearchVal) || cleanSearchVal.endsWith(phone))) ||
+        (username && username === searchVal)
+      ) {
         perfil = {};
         userHeaders.forEach((header, index) => {
           perfil[header] = getVal(row, index);
@@ -1095,7 +1112,7 @@ function obtenerDatosSocioPublico(email) {
     }
 
     if (!perfil) {
-      throw new Error("No se encontró ningún socio registrado con el correo especificado.");
+      throw new Error("No se encontró ningún socio registrado con el identificador provisto.");
     }
 
     return {
