@@ -1439,6 +1439,222 @@
 
   <div class="container">
     
+    <!-- PANTALLA PÚBLICA DE REGISTRO / ALTA DE SOCIO (WHATSAPP) -->
+    <div id="public-register-view" class="login-wrapper" style="display:none; max-width: 500px; margin: 0 auto; padding: 20px 10px;">
+      <div class="logo-area">
+        <img src="logo.png" style="height: 100px; width: auto; margin-bottom: 12px; filter: drop-shadow(0 2px 8px rgba(0,0,0,0.12));" alt="Haedo Futsal">
+        <h1 class="logo-title" style="color: #0f172a; font-size: 24px;">Haedo Futsal</h1>
+        <p class="logo-subtitle" style="font-size: 14px;">Registro de Nuevo Socio</p>
+      </div>
+
+      <div class="card" style="padding: 24px; border-radius: 16px;">
+        
+        <!-- PASO 1: VERIFICAR DNI -->
+        <div id="register-step-1">
+          <p style="color: #475569; font-size: 14px; line-height: 1.5; margin-bottom: 20px; text-align: center;">
+            Ingresá tu DNI de 8 dígitos para iniciar tu registro en el club.
+          </p>
+
+          <div id="register-dni-toast" class="error-toast" style="display:none; margin-bottom: 16px;">
+            <i class="fa-solid fa-circle-info"></i>
+            <span id="register-dni-toast-text"></span>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 20px;">
+            <label class="form-label" for="public-register-dni-check">DNI (8 dígitos)</label>
+            <div class="input-wrapper">
+              <i class="fa-solid fa-id-card input-icon"></i>
+              <input type="text" id="public-register-dni-check" class="form-input" maxlength="8" placeholder="Ej: 45123456" 
+                     oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+                     onkeydown="if(event.key === 'Enter') verificarDniPublico()">
+            </div>
+          </div>
+
+          <button type="button" class="btn btn-primary" onclick="verificarDniPublico()" style="width: 100%; height: 44px; font-size: 15px; font-weight: 600; border-radius: 8px;">
+            Verificar DNI
+          </button>
+        </div>
+
+        <!-- PASO 2: FORMULARIO DE REGISTRO -->
+        <div id="register-step-2" style="display:none;">
+          <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 12px; margin-bottom: 20px; display: flex; align-items: flex-start; gap: 8px;">
+            <i class="fa-solid fa-circle-check" style="color: #15803d; margin-top: 2px;"></i>
+            <p style="color: #166534; font-size: 13px; line-height: 1.4; margin: 0;">
+              <strong>DNI disponible.</strong> Completá los siguientes campos para darte de alta como nuevo socio.
+            </p>
+          </div>
+
+          <form id="form-public-register" onsubmit="event.preventDefault(); guardarNuevoSocioPublico();">
+            <!-- DNI bloqueado -->
+            <div class="form-group" style="margin-bottom: 16px;">
+              <label class="form-label" for="public-register-dni">DNI</label>
+              <div class="input-wrapper">
+                <i class="fa-solid fa-id-card input-icon"></i>
+                <input type="text" id="public-register-dni" class="form-input" readonly style="background-color: #f1f5f9; color: #64748b;">
+              </div>
+            </div>
+
+            <!-- Nombres -->
+            <div class="form-group" style="margin-bottom: 16px;">
+              <label class="form-label" for="public-register-firstname">Nombres</label>
+              <div class="input-wrapper">
+                <i class="fa-solid fa-user input-icon"></i>
+                <input type="text" id="public-register-firstname" class="form-input" required placeholder="Tus nombres">
+              </div>
+            </div>
+
+            <!-- Apellido -->
+            <div class="form-group" style="margin-bottom: 16px;">
+              <label class="form-label" for="public-register-lastname">Apellido</label>
+              <div class="input-wrapper">
+                <i class="fa-solid fa-user input-icon"></i>
+                <input type="text" id="public-register-lastname" class="form-input" required placeholder="Tu apellido">
+              </div>
+            </div>
+
+            <!-- Correo -->
+            <div class="form-group" style="margin-bottom: 16px;">
+              <label class="form-label" for="public-register-email">Correo Electrónico</label>
+              <div class="input-wrapper">
+                <i class="fa-solid fa-envelope input-icon"></i>
+                <input type="email" id="public-register-email" class="form-input" required placeholder="ejemplo@correo.com">
+              </div>
+            </div>
+
+            <!-- Teléfono -->
+            <div class="form-group" style="margin-bottom: 16px;">
+              <label class="form-label" for="public-register-phone">Teléfono de Contacto</label>
+              <div class="input-wrapper">
+                <i class="fa-solid fa-phone input-icon"></i>
+                <input type="text" id="public-register-phone" class="form-input" required placeholder="Tu celular con código de área">
+              </div>
+            </div>
+
+            <!-- Fecha de Nacimiento -->
+            <div class="form-group" style="margin-bottom: 16px;">
+              <label class="form-label" for="public-register-birthdate">Fecha de Nacimiento</label>
+              <div class="input-wrapper">
+                <i class="fa-solid fa-calendar-days input-icon"></i>
+                <input type="date" id="public-register-birthdate" class="form-input" required>
+              </div>
+            </div>
+
+            <!-- Categoría -->
+            <div class="form-group" style="margin-bottom: 16px;">
+              <label class="form-label" for="public-register-category">Categoría</label>
+              <div class="input-wrapper">
+                <i class="fa-solid fa-users input-icon"></i>
+                <select id="public-register-category" class="form-input" required style="padding-left: 36px; -webkit-appearance: none;">
+                  <!-- Se populan dinámicamente -->
+                </select>
+              </div>
+            </div>
+
+            <!-- Grupo Sanguíneo -->
+            <div class="form-group" style="margin-bottom: 16px;">
+              <label class="form-label" for="public-register-bloodtype">Grupo Sanguíneo</label>
+              <div class="input-wrapper">
+                <i class="fa-solid fa-droplet input-icon"></i>
+                <select id="public-register-bloodtype" class="form-input" required style="padding-left: 36px; -webkit-appearance: none;">
+                  <option value="O+">O Positivo (O+)</option>
+                  <option value="O-">O Negativo (O-)</option>
+                  <option value="A+">A Positivo (A+)</option>
+                  <option value="A-">A Negativo (A-)</option>
+                  <option value="B+">B Positivo (B+)</option>
+                  <option value="B-">B Negativo (B-)</option>
+                  <option value="AB+">AB Positivo (AB+)</option>
+                  <option value="AB-">AB Negativo (AB-)</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Obra Social -->
+            <div class="form-group" style="margin-bottom: 16px;">
+              <label class="form-label" for="public-register-obrasocial">Obra Social / Prepaga</label>
+              <div class="input-wrapper">
+                <i class="fa-solid fa-briefcase-medical input-icon"></i>
+                <input type="text" id="public-register-obrasocial" class="form-input" required placeholder="Particular / Nombre de Prepaga">
+              </div>
+            </div>
+
+            <!-- Apto Físico -->
+            <div class="form-group" style="margin-bottom: 16px;">
+              <label class="form-label" for="public-register-medicalfit">Apto Físico</label>
+              <div class="input-wrapper">
+                <i class="fa-solid fa-heart-pulse input-icon"></i>
+                <select id="public-register-medicalfit" class="form-input" required style="padding-left: 36px; -webkit-appearance: none;">
+                  <option value="Apto Físico Vigente">Apto Físico Vigente</option>
+                  <option value="Apto Físico Vencido">Apto Físico Vencido</option>
+                </select>
+              </div>
+            </div>
+
+            <h3 style="font-size: 14px; color: #0f172a; margin: 24px 0 12px 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px;">
+              Contacto de Emergencia
+            </h3>
+
+            <!-- Nombre de Emergencia -->
+            <div class="form-group" style="margin-bottom: 16px;">
+              <label class="form-label" for="public-register-emergencycontact">Nombre del Contacto</label>
+              <div class="input-wrapper">
+                <i class="fa-solid fa-user-shield input-icon"></i>
+                <input type="text" id="public-register-emergencycontact" class="form-input" required placeholder="Nombre de familiar / contacto">
+              </div>
+            </div>
+
+            <!-- Teléfono de Emergencia -->
+            <div class="form-group" style="margin-bottom: 24px;">
+              <label class="form-label" for="public-register-emergencyphone">Teléfono de Emergencia</label>
+              <div class="input-wrapper">
+                <i class="fa-solid fa-phone-flip input-icon"></i>
+                <input type="text" id="public-register-emergencyphone" class="form-input" required placeholder="Teléfono de contacto de emergencia">
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%; height: 44px; font-size: 15px; font-weight: 600; border-radius: 8px;">
+              Registrarme
+            </button>
+          </form>
+        </div>
+
+        <!-- PASO 3: CREDENCIALES GENERADAS -->
+        <div id="register-step-3" style="display:none; text-align: center; padding: 10px 0;">
+          <div class="success-checkmark" style="margin-bottom: 20px;">
+            <div class="check-icon" style="font-size: 60px; color: #10b981;">
+              <i class="fa-solid fa-circle-check"></i>
+            </div>
+          </div>
+          <h2 style="font-size: 20px; color: #0f172a; margin-bottom: 16px;">¡Registro Completado con Éxito!</h2>
+          <p style="color: #475569; font-size: 14px; line-height: 1.5; margin-bottom: 24px;">
+            Tus datos de acceso para la aplicación de Haedo Futsal son:
+          </p>
+
+          <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin-bottom: 24px; text-align: left; font-family: monospace; font-size: 15px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);">
+            <div style="margin-bottom: 12px; display: flex; justify-content: space-between;">
+              <span style="color: #64748b; font-weight: bold;">Usuario:</span>
+              <span id="public-register-success-username" style="color: #0f172a; font-weight: bold; background-color: #e2e8f0; padding: 2px 6px; border-radius: 4px;">-</span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+              <span style="color: #64748b; font-weight: bold;">Clave Temporal:</span>
+              <span style="color: #0f172a; font-weight: bold; background-color: #e2e8f0; padding: 2px 6px; border-radius: 4px;">1234</span>
+            </div>
+          </div>
+
+          <div style="background-color: #fffbeb; border: 1px solid #fef3c7; border-radius: 8px; padding: 12px; margin-bottom: 24px; display: flex; align-items: flex-start; gap: 8px; text-align: left;">
+            <i class="fa-solid fa-triangle-exclamation" style="color: #d97706; margin-top: 2px;"></i>
+            <p style="color: #92400e; font-size: 12.5px; line-height: 1.4; margin: 0;">
+              <strong>⚠️ IMPORTANTE:</strong> Te recomendamos cambiar tu clave numérica de 4 dígitos en tu primer ingreso desde la sección <strong>"Mi Cuenta"</strong>.
+            </p>
+          </div>
+
+          <button type="button" class="btn btn-primary" onclick="window.location.reload()" style="width: 100%; height: 44px; font-size: 15px; font-weight: 600; border-radius: 8px;">
+            Ir al Inicio de Sesión
+          </button>
+        </div>
+
+      </div>
+    </div>
+
     <!-- PANTALLA PÚBLICA DE ACTUALIZACIÓN DE DATOS (WHATSAPP) -->
     <div id="public-update-view" class="login-wrapper" style="display:none; max-width: 500px; margin: 0 auto; padding: 20px 10px;">
       <div class="logo-area">
@@ -3256,6 +3472,12 @@
         return;
       }
 
+      if (action === 'register-socio') {
+        ocultarCarga();
+        inicializarFormularioRegistro();
+        return;
+      }
+
       // Verificar si viene una redirección de Mercado Pago acreditada
       const mpStatus = urlParams.get('collection_status') || urlParams.get('status');
       const extRef = urlParams.get('external_reference');
@@ -3324,6 +3546,8 @@
       document.getElementById("login-view").style.display = "none";
       const pubView = document.getElementById("public-update-view");
       if (pubView) pubView.style.display = "none";
+      const pubRegView = document.getElementById("public-register-view");
+      if (pubRegView) pubRegView.style.display = "none";
       document.getElementById("socio-mi-cuenta-view").style.display = "none";
       document.getElementById("socio-agenda-view").style.display = "none";
       document.getElementById("admin-inicio-view").style.display = "none";
@@ -3339,8 +3563,8 @@
       const targetEl = document.getElementById(idPantalla);
       if (targetEl) targetEl.style.display = "flex";
 
-      // No mostrar nav bar en la pantalla de login o actualización pública
-      if (idPantalla === 'login-view' || idPantalla === 'public-update-view') return;
+      // No mostrar nav bar en la pantalla de login, actualización o registro público
+      if (idPantalla === 'login-view' || idPantalla === 'public-update-view' || idPantalla === 'public-register-view') return;
 
       // Calcular rol y config actuales
       const normRole = (estadoApp.role && typeof getNormalizedRole === 'function')
@@ -7546,6 +7770,151 @@
           alert("Error de conexión: " + err.message);
         })
         .actualizarDatosSocioPublico(email, datos);
+    }
+
+    // FORMULARIO PÚBLICO DE REGISTRO / ALTA DE SOCIO (WHATSAPP)
+    function inicializarFormularioRegistro() {
+      // Mostrar paso 1 y resetear inputs
+      document.getElementById("register-step-1").style.display = "block";
+      document.getElementById("register-step-2").style.display = "none";
+      document.getElementById("register-step-3").style.display = "none";
+      document.getElementById("public-register-dni-check").value = "";
+      document.getElementById("register-dni-toast").style.display = "none";
+      
+      // Resetear botón de verificación a estado inicial
+      const registerBtn = document.querySelector("#register-step-1 button");
+      if (registerBtn) {
+        registerBtn.innerText = "Verificar DNI";
+        registerBtn.onclick = verificarDniPublico;
+      }
+      
+      // Limpiar formulario del paso 2
+      document.getElementById("form-public-register").reset();
+      
+      mostrarPantalla("public-register-view");
+
+      // Cargar categorías públicas en el selector
+      mostrarCarga("Cargando categorías...");
+      google.script.run
+        .withSuccessHandler(function(response) {
+          ocultarCarga();
+          if (response && response.success && response.categorias) {
+            const select = document.getElementById("public-register-category");
+            select.innerHTML = "";
+            response.categorias.forEach(cat => {
+              const opt = document.createElement("option");
+              opt.value = cat.id;
+              opt.innerText = cat.name;
+              select.appendChild(opt);
+            });
+          }
+        })
+        .withFailureHandler(function(err) {
+          ocultarCarga();
+          console.warn("No se pudieron cargar las categorías del servidor:", err);
+        })
+        .obtenerCategoriasPublicas();
+    }
+
+    function verificarDniPublico() {
+      const dni = document.getElementById("public-register-dni-check").value.trim();
+      const toast = document.getElementById("register-dni-toast");
+      const toastText = document.getElementById("register-dni-toast-text");
+      
+      if (dni.length !== 8 || isNaN(dni)) {
+        toastText.innerText = "Por favor, ingresá un DNI válido de 8 números.";
+        toast.className = "error-toast";
+        toast.style.backgroundColor = "#fee2e2";
+        toast.style.borderColor = "#fca5a5";
+        toast.style.color = "#991b1b";
+        toast.style.display = "flex";
+        return;
+      }
+
+      mostrarCarga("Verificando DNI...");
+      google.script.run
+        .withSuccessHandler(function(response) {
+          ocultarCarga();
+          if (response && response.success) {
+            if (response.existe) {
+              // El DNI ya existe: Mostrar Paso 1 con mensaje y botón para ir a Login
+              toastText.innerHTML = "<strong>Este DNI ya se encuentra registrado.</strong> Por favor, iniciá sesión con tu usuario y clave.";
+              toast.className = "error-toast";
+              toast.style.backgroundColor = "#fffbeb";
+              toast.style.borderColor = "#fef3c7";
+              toast.style.color = "#92400e";
+              toast.style.display = "flex";
+              
+              // Mostrar botón de login sustituyendo el botón de verificación
+              const registerBtn = document.querySelector("#register-step-1 button");
+              if (registerBtn) {
+                registerBtn.innerText = "Ir al Inicio de Sesión";
+                registerBtn.onclick = function() {
+                  window.location.reload();
+                };
+              }
+            } else {
+              // DNI disponible: Pasar al paso 2 y rellenar DNI de solo lectura
+              toast.style.display = "none";
+              document.getElementById("public-register-dni").value = dni;
+              document.getElementById("register-step-1").style.display = "none";
+              document.getElementById("register-step-2").style.display = "block";
+            }
+          } else {
+            toastText.innerText = response ? response.message : "Error al verificar DNI.";
+            toast.className = "error-toast";
+            toast.style.backgroundColor = "#fee2e2";
+            toast.style.borderColor = "#fca5a5";
+            toast.style.color = "#991b1b";
+            toast.style.display = "flex";
+          }
+        })
+        .withFailureHandler(function(err) {
+          ocultarCarga();
+          toastText.innerText = "Error de conexión: " + err.message;
+          toast.className = "error-toast";
+          toast.style.backgroundColor = "#fee2e2";
+          toast.style.borderColor = "#fca5a5";
+          toast.style.color = "#991b1b";
+          toast.style.display = "flex";
+        })
+        .chequearDniSocioNuevo(dni);
+    }
+
+    function guardarNuevoSocioPublico() {
+      const socioObj = {
+        DNI: document.getElementById("public-register-dni").value.trim(),
+        FirstName: document.getElementById("public-register-firstname").value.trim(),
+        LastName: document.getElementById("public-register-lastname").value.trim(),
+        Email: document.getElementById("public-register-email").value.trim(),
+        Phone: document.getElementById("public-register-phone").value.trim(),
+        BirthDate: document.getElementById("public-register-birthdate").value,
+        Category: document.getElementById("public-register-category").value,
+        BloodType: document.getElementById("public-register-bloodtype").value,
+        ObraSocial: document.getElementById("public-register-obrasocial").value.trim(),
+        MedicalFit: document.getElementById("public-register-medicalfit").value,
+        EmergencyContact: document.getElementById("public-register-emergencycontact").value.trim(),
+        EmergencyPhone: document.getElementById("public-register-emergencyphone").value.trim()
+      };
+
+      mostrarCarga("Registrando...");
+      google.script.run
+        .withSuccessHandler(function(response) {
+          ocultarCarga();
+          if (response && response.success) {
+            // Mostrar credenciales del Paso 3
+            document.getElementById("public-register-success-username").innerText = response.username || "-";
+            document.getElementById("register-step-2").style.display = "none";
+            document.getElementById("register-step-3").style.display = "block";
+          } else {
+            alert(response ? response.message : "Error al registrar socio.");
+          }
+        })
+        .withFailureHandler(function(err) {
+          ocultarCarga();
+          alert("Error de conexión: " + err.message);
+        })
+        .registrarSocioPublico(socioObj);
     }
 
     // ───────────── PWA: Registro del Service Worker e Intercepción de Share Target ─────────────
