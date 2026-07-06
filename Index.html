@@ -4109,9 +4109,12 @@
         ? perfil.Category.split('|').map(c => c.trim()).filter(Boolean)
         : [];
       
+      // Obtener categorías padre únicas
+      const parentCategories = [...new Set(socioCategories.map(obtenerCategoriaPadre))];
+      
       select.innerHTML = "";
       
-      if (socioCategories.length > 1) {
+      if (parentCategories.length > 1) {
         select.disabled = false;
         
         const optionAll = document.createElement("option");
@@ -4119,15 +4122,15 @@
         optionAll.textContent = "Todas las Categorías";
         select.appendChild(optionAll);
         
-        socioCategories.forEach(cat => {
+        parentCategories.forEach(cat => {
           const option = document.createElement("option");
           option.value = cat;
           option.textContent = categoriasMap[cat] || cat;
           select.appendChild(option);
         });
-      } else if (socioCategories.length === 1) {
+      } else if (parentCategories.length === 1) {
         select.disabled = true;
-        const cat = socioCategories[0];
+        const cat = parentCategories[0];
         const option = document.createElement("option");
         option.value = cat;
         option.textContent = categoriasMap[cat] || cat;
@@ -4184,6 +4187,7 @@
       const socioCategories = perfil.Category
         ? perfil.Category.split('|').map(c => c.trim()).filter(Boolean)
         : [];
+      const parentCategories = [...new Set(socioCategories.map(obtenerCategoriaPadre))];
         
       let filtered = [];
       
@@ -4193,7 +4197,7 @@
         
         let categoriesToFilter = [];
         if (selectedCategory === "all") {
-          categoriesToFilter = socioCategories;
+          categoriesToFilter = parentCategories;
         } else if (selectedCategory) {
           categoriesToFilter = [selectedCategory];
         }
@@ -5177,16 +5181,21 @@
         const textMatch = !query || `${socio.Name} ${socio.Email}`.toLowerCase().includes(query);
         if (!textMatch) return false;
         
-        const parentCat = obtenerCategoriaPadre(socio.Category);
-        if (filterCat !== "Todos" && parentCat !== filterCat) {
+        const socioCategories = socio.Category
+          ? socio.Category.split('|').map(c => c.trim()).filter(Boolean)
+          : [];
+        const parentCats = [...new Set(socioCategories.map(obtenerCategoriaPadre))];
+        
+        if (filterCat !== "Todos" && !parentCats.includes(filterCat)) {
           return false;
         }
         
         if (filterTorneo !== "Todos") {
-          const catObj = (estadoApp.datosAdmin.categorias || []).find(c => c.Category_ID === parentCat);
-          if (!catObj || catObj.Torneos !== filterTorneo) {
-            return false;
-          }
+          const hasTorneo = parentCats.some(parentCat => {
+            const catObj = (estadoApp.datosAdmin.categorias || []).find(c => c.Category_ID === parentCat);
+            return catObj && catObj.Torneos === filterTorneo;
+          });
+          if (!hasTorneo) return false;
         }
         
         if (filterMes !== "Todos" || filterEstado !== "Todos") {
