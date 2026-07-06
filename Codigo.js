@@ -1569,8 +1569,15 @@ function obtenerDatosSocioPublico(identifier) {
     const getVal = (row, idx) => (row && idx !== -1 && idx < row.length && row[idx] !== undefined && row[idx] !== null) ? row[idx].toString().trim() : "";
 
     const searchVal = (identifier || "").toString().toLowerCase().trim();
-    // Remover caracteres no alfanuméricos para búsquedas limpias de DNI o Teléfono
     const cleanSearchVal = searchVal.replace(/[^a-z0-9]/g, "");
+
+    // Obtener lista de usuarios existentes en mayúsculas para autocompletar único en el cliente
+    const existingUsernames = [];
+    for (let i = 1; i < usersData.length; i++) {
+      if (userColIndex !== -1 && usersData[i][userColIndex]) {
+        existingUsernames.push(usersData[i][userColIndex].toString().trim().toUpperCase());
+      }
+    }
 
     let perfil = null;
     for (let i = 1; i < usersData.length; i++) {
@@ -1595,11 +1602,17 @@ function obtenerDatosSocioPublico(identifier) {
     }
 
     if (!perfil) {
-      throw new Error("No se encontró ningún socio registrado con el identificador provisto.");
+      return {
+        success: true,
+        existe: false,
+        existingUsernames: existingUsernames
+      };
     }
 
     return {
       success: true,
+      existe: true,
+      existingUsernames: existingUsernames,
       datos: {
         Email: perfil.Email || "",
         Name: perfil.Name || "",
@@ -1610,7 +1623,9 @@ function obtenerDatosSocioPublico(identifier) {
         ObraSocial: perfil.ObraSocial || "",
         MedicalFit: perfil.MedicalFit || "",
         EmergencyContact: perfil.EmergencyContact || "",
-        EmergencyPhone: perfil.EmergencyPhone || ""
+        EmergencyPhone: perfil.EmergencyPhone || "",
+        Username: perfil.Username || "",
+        Category: perfil.Category || ""
       }
     };
   } catch (error) {
@@ -1650,13 +1665,25 @@ function actualizarDatosSocioPublico(email, datos) {
       throw new Error("No se encontró ningún socio registrado con el correo especificado.");
     }
 
-    // Capitalizar nombre y apellido si vienen presentes
-    let formattedName = datos.Name || "";
-    if (formattedName) {
-      formattedName = formattedName.trim().split(/\s+/).map(w => {
-        if (!w) return "";
-        return w.charAt(0).toUpperCase() + w.slice(1).toLowerCase();
-      }).join(" ");
+    // Formatear Name en formato "Apellido, Nombres"
+    let formattedName = "";
+    if (datos.LastName && datos.FirstName) {
+      formattedName = datos.LastName.trim().split(/\s+/).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(" ") + ", " +
+                      datos.FirstName.trim().split(/\s+/).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(" ");
+    } else {
+      formattedName = datos.Name || "";
+    }
+
+    // Calcular edad
+    let age = "";
+    if (datos.BirthDate) {
+      const birth = new Date(datos.BirthDate);
+      const today = new Date();
+      age = today.getFullYear() - birth.getFullYear();
+      const m = today.getMonth() - birth.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
+        age--;
+      }
     }
 
     // Actualizar columnas una por una
@@ -1665,11 +1692,13 @@ function actualizarDatosSocioPublico(email, datos) {
       "Phone": (datos.Phone || "").trim(),
       "DNI": (datos.DNI || "").trim(),
       "BirthDate": (datos.BirthDate || "").trim(),
-      "BloodType": (datos.BloodType || "").trim(),
-      "ObraSocial": (datos.ObraSocial || "").trim(),
-      "MedicalFit": (datos.MedicalFit || "").trim(),
+      "Age": age.toString(),
+      "Username": (datos.Username || "").trim(),
+      "Category": (datos.Category || "").trim(),
       "EmergencyContact": (datos.EmergencyContact || "").trim(),
-      "EmergencyPhone": (datos.EmergencyPhone || "").trim()
+      "EmergencyPhone": (datos.EmergencyPhone || "").trim(),
+      "ParentName": (datos.ParentName || "").trim(),
+      "ParentPhone": (datos.ParentPhone || "").trim()
     };
 
     // Aplicar las ediciones en el rango correspondiente
@@ -1908,7 +1937,9 @@ function registrarSocioPublico(socioObj) {
       else if (header === "ObraSocial") newRow.push(socioObj.ObraSocial || "Particular");
       else if (header === "EmergencyContact") newRow.push(socioObj.EmergencyContact || "");
       else if (header === "EmergencyPhone") newRow.push(socioObj.EmergencyPhone || "");
-      else if (header === "Username") newRow.push(candidato);
+      else if (header === "ParentName") newRow.push(socioObj.ParentName || "");
+      else if (header === "ParentPhone") newRow.push(socioObj.ParentPhone || "");
+      else if (header === "Username") newRow.push(candidato || socioObj.Username || "");
       else if (header === "Password") newRow.push("1234");
       else newRow.push("");
     });
