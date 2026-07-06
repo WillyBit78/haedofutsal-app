@@ -133,7 +133,7 @@ const SHEET_HEADERS = {
   'Torneos': ["Torneo_ID", "Name", "Category"],
   'Finanzas_Torneos': ["Movimiento_ID", "Torneo_ID", "Type", "Concept", "Amount", "Date", "Payment_Method"],
   'Partidos': ["Partido_ID", "Torneo_ID", "Date", "Opponent", "Location", "Result", "Scorers", "Cards", "MVP", "Summary"],
-  'Logs_Audit': ["Timestamp", "User", "Action", "Details"]
+  'Logs_Audit': ["Log_ID", "Timestamp", "User_Email", "Action_Type", "Entity", "Details"]
 };
 
 const mockSpreadsheet = {
