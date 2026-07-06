@@ -22,45 +22,150 @@
     ],
     "rows": [
       [
-        "EDEFI-Mayores",
-        "EDEFI Mayores",
-        "Bocha",
-        15000,
-        "EDEFI"
-      ],
-      [
         "EDEFI-Baby",
-        "EDEFI Baby",
+        "EDEFI - Baby",
         "Marcelo",
-        30000,
+        2,
         "EDEFI"
       ],
       [
-        "BAFI-Femenino",
-        "BAFI Femenino",
+        "BAFI-FemRes",
+        "BAFI - Femenino Reserva",
         "Pol",
-        20000,
+        2,
         "BAFI"
       ],
       [
-        "BAFI-Masculino",
-        "BAFI Masculino",
-        "Bocha",
-        30000,
+        "BAFI-Fem1ra",
+        "BAFI - Femenino 1ra",
+        "Pol",
+        2,
         "BAFI"
       ],
       [
-        "FUTSALA-Masculino",
-        "FUTSALA Masculino",
+        "FUTSALA-Masc8va",
+        "FUTSALA - Masculino 8va",
         "Bocha",
-        30000,
+        2,
         "FUTSALA"
       ],
       [
-        "FUTSALA-Promocionales",
-        "FUTSALA Promocionales",
+        "FUTSALA-Masc7ma",
+        "FUTSALA - Masculino 7ma",
+        "Bocha",
+        2,
+        "FUTSALA"
+      ],
+      [
+        "FUTSALA-Masc6ta",
+        "FUTSALA - Masculino 6ta",
+        "Bocha",
+        2,
+        "FUTSALA"
+      ],
+      [
+        "FUTSALA-Masc5ta",
+        "FUTSALA - Masculino 5ta",
+        "Bocha",
+        2,
+        "FUTSALA"
+      ],
+      [
+        "FUTSALA-Masc4ta",
+        "FUTSALA - Masculino 4ta",
+        "Bocha",
+        2,
+        "FUTSALA"
+      ],
+      [
+        "FUTSALA-Masc3ra",
+        "FUTSALA - Masculino 3ra",
+        "Bocha",
+        2,
+        "FUTSALA"
+      ],
+      [
+        "FUTSALA-Masc1ra",
+        "FUTSALA - Masculino 1ra",
+        "Bocha",
+        2,
+        "FUTSALA"
+      ],
+      [
+        "EDEFI-May30",
+        "EDEFI - Futsal Mayores +30",
+        "Bocha",
+        2,
+        "EDEFI"
+      ],
+      [
+        "EDEFI-May35",
+        "EDEFI - Futsal Mayores +35",
+        "Bocha",
+        2,
+        "EDEFI"
+      ],
+      [
+        "EDEFI-May42",
+        "EDEFI - Futsal Mayores +42",
+        "Bocha",
+        2,
+        "EDEFI"
+      ],
+      [
+        "BAFI-Masc5ta",
+        "BAFI - Masculino 5ta",
+        "Bocha",
+        2,
+        "BAFI"
+      ],
+      [
+        "BAFI-Masc4ta",
+        "BAFI - Masculino 4ta",
+        "Bocha",
+        2,
+        "BAFI"
+      ],
+      [
+        "BAFI-Masc3ra",
+        "BAFI - Masculino 3ra",
+        "Bocha",
+        2,
+        "BAFI"
+      ],
+      [
+        "BAFI-MascRes",
+        "BAFI - Masculino Reserva",
+        "Bocha",
+        2,
+        "BAFI"
+      ],
+      [
+        "BAFI-Masc1ra",
+        "BAFI - Masculino 1ra",
+        "Bocha",
+        2,
+        "BAFI"
+      ],
+      [
+        "FUTSALA-Prom2016",
+        "FUTSALA - Promocionales 2016",
         "Marcelo",
-        30000,
+        2,
+        "FUTSALA"
+      ],
+      [
+        "FUTSALA-Prom2017",
+        "FUTSALA - Promocionales 2017",
+        "Marcelo",
+        2,
+        "FUTSALA"
+      ],
+      [
+        "FUTSALA-Prom2018",
+        "FUTSALA - Promocionales 2018",
+        "Marcelo",
+        2,
         "FUTSALA"
       ]
     ]
@@ -3394,6 +3499,16 @@
         "2026-06-27 22:16"
       ],
       [
+        "PAG-0390",
+        "socio64@futsalhaedo.com",
+        "2026-06",
+        30000,
+        "Pendiente",
+        "",
+        "",
+        ""
+      ],
+      [
         "PAG-0097",
         "socio16@futsalhaedo.com",
         "2026-01",
@@ -3439,16 +3554,6 @@
         "2026-05",
         15000,
         "Pagado",
-        "",
-        "",
-        ""
-      ],
-      [
-        "PAG-0102",
-        "socio16@futsalhaedo.com",
-        "2026-06",
-        15000,
-        "Pendiente",
         "",
         "",
         ""
@@ -5244,16 +5349,6 @@
         ""
       ],
       [
-        "PAG-0282",
-        "socio46@futsalhaedo.com",
-        "2026-06",
-        15000,
-        "Pendiente",
-        "",
-        "",
-        ""
-      ],
-      [
         "PAG-0283",
         "socio47@futsalhaedo.com",
         "2026-01",
@@ -6314,26 +6409,6 @@
         ""
       ],
       [
-        "PAG-0389",
-        "socio64@futsalhaedo.com",
-        "2026-05",
-        30000,
-        "Pendiente",
-        "",
-        "",
-        ""
-      ],
-      [
-        "PAG-0390",
-        "socio64@futsalhaedo.com",
-        "2026-06",
-        30000,
-        "Pendiente",
-        "",
-        "",
-        ""
-      ],
-      [
         "PAG-0391",
         "socio65@futsalhaedo.com",
         "2026-01",
@@ -6790,16 +6865,6 @@
         15000,
         "Pagado",
         "https://www.mercadopago.com.ar/checkout/v1/redirect?pref_id=mock_pref_PAG-0436",
-        "",
-        ""
-      ],
-      [
-        "PAG-0437",
-        "socio72@futsalhaedo.com",
-        "2026-05",
-        15000,
-        "Pendiente",
-        "",
         "",
         ""
       ],
@@ -8004,16 +8069,6 @@
         ""
       ],
       [
-        "PAG-0558",
-        "socio92@futsalhaedo.com",
-        "2026-06",
-        15000,
-        "Pendiente",
-        "",
-        "",
-        ""
-      ],
-      [
         "PAG-0559",
         "socio93@futsalhaedo.com",
         "2026-01",
@@ -8554,6 +8609,16 @@
         "2026-06-29"
       ],
       [
+        "PAG-0389",
+        "socio64@futsalhaedo.com",
+        "2026-05",
+        30000,
+        "Pagado",
+        "",
+        "coach@futsalhaedo.com",
+        "2026-07-01 23:39"
+      ],
+      [
         "PAG-DEMO-07",
         "deportista@futsalhaedo.com",
         "2026-07",
@@ -8602,6 +8667,46 @@
         "",
         "",
         ""
+      ],
+      [
+        "PAG-0282",
+        "socio46@futsalhaedo.com",
+        "2026-06",
+        15000,
+        "Pagado",
+        "",
+        "coach@haedofutsal.com",
+        "2026-07-02 20:33"
+      ],
+      [
+        "PAG-0437",
+        "socio72@futsalhaedo.com",
+        "2026-05",
+        15000,
+        "Pagado",
+        "",
+        "coach@haedofutsal.com",
+        "2026-07-02 20:41"
+      ],
+      [
+        "PAG-0558",
+        "socio92@futsalhaedo.com",
+        "2026-06",
+        15000,
+        "Pagado",
+        "",
+        "coach@futsalhaedo.com",
+        "2026-07-02 21:23"
+      ],
+      [
+        "PAG-0102",
+        "socio16@futsalhaedo.com",
+        "2026-06",
+        15000,
+        "Pagado",
+        "",
+        "coach@futsalhaedo.com",
+        "2026-07-05 05:06"
       ],
       [
         "PAG-GPAZOS-01",
@@ -8658,6 +8763,66 @@
         "guillermopazos@gmail.com",
         "2026-06",
         15000,
+        "Pendiente",
+        "",
+        "",
+        ""
+      ],
+      [
+        "PAG-JPRUEBA-01",
+        "jprueba@haedofutsal.com",
+        "2026-01",
+        2,
+        "Pendiente",
+        "",
+        "",
+        ""
+      ],
+      [
+        "PAG-JPRUEBA-02",
+        "jprueba@haedofutsal.com",
+        "2026-02",
+        2,
+        "Pendiente",
+        "",
+        "",
+        ""
+      ],
+      [
+        "PAG-JPRUEBA-03",
+        "jprueba@haedofutsal.com",
+        "2026-03",
+        2,
+        "Pendiente",
+        "",
+        "",
+        ""
+      ],
+      [
+        "PAG-JPRUEBA-04",
+        "jprueba@haedofutsal.com",
+        "2026-04",
+        2,
+        "Pendiente",
+        "",
+        "",
+        ""
+      ],
+      [
+        "PAG-JPRUEBA-05",
+        "jprueba@haedofutsal.com",
+        "2026-05",
+        2,
+        "Pendiente",
+        "",
+        "",
+        ""
+      ],
+      [
+        "PAG-JPRUEBA-06",
+        "jprueba@haedofutsal.com",
+        "2026-06",
+        2,
         "Pendiente",
         "",
         "",
