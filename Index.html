@@ -7041,7 +7041,7 @@
           ocultarCarga();
           alert("Error de conexión: " + err.message);
         })
-        .actualizarPrecios(categoriasObj, torneosObj);
+        .actualizarPrecios(categoriasObj, torneosObj, estadoApp.userEmail);
     }
 
     function sincronizarFiltrosBalance() {
