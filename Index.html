@@ -1698,14 +1698,14 @@
           <!-- Paso 1: Ingreso de DNI o Teléfono para buscar los datos (Solo se muestra si no vino param en URL) -->
           <div id="public-update-search-step" style="display:none; text-align: center;">
             <p style="color: #475569; font-size: 14px; line-height: 1.5; margin-bottom: 20px;">
-              Ingresá tu DNI o número de Teléfono celular para buscar tus datos y actualizarlos.
+              Ingresá tu DNI para buscar tus datos y actualizarlos.
             </p>
             
             <div class="form-group" style="margin-bottom: 20px;">
-              <label class="form-label" for="public-update-search-input">DNI o Teléfono Celular</label>
+              <label class="form-label" for="public-update-search-input">DNI</label>
               <div class="input-wrapper">
                 <i class="fa-solid fa-magnifying-glass input-icon"></i>
-                <input type="text" id="public-update-search-input" class="form-input" placeholder="Ej: 35123456 o 1161234567" onkeydown="if(event.key === 'Enter') buscarDatosSocioPublicoManual()">
+                <input type="text" id="public-update-search-input" class="form-input" placeholder="Ej: 35123456" onkeydown="if(event.key === 'Enter') buscarDatosSocioPublicoManual()">
               </div>
             </div>
 
@@ -1783,7 +1783,7 @@
 
             <!-- Torneo/Liga (Menu desplegable responsivo con multi-select de hasta 2 opciones) -->
             <div class="form-group">
-              <label class="form-label">Torneo / Liga de pertenencia (Seleccionar hasta 2)</label>
+              <label class="form-label">Torneo / Liga (Seleccionar hasta 2)</label>
               <div id="public-update-categories-container" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap:10px; padding:10px; border:1px solid var(--border-color); border-radius:8px; background:#fafafa;">
                 <!-- Se cargan dinámicamente -->
               </div>
@@ -8520,7 +8520,7 @@
     function buscarDatosSocioPublicoManual() {
       const val = document.getElementById("public-update-search-input").value.trim();
       if (!val) {
-        alert("Por favor, ingresá tu DNI o número de Teléfono celular.");
+        alert("Por favor, ingresá tu DNI.");
         return;
       }
       inicializarFormularioPublico(val);
@@ -8763,10 +8763,6 @@
 
       // Obtener categorías seleccionadas
       const selectedCats = Array.from(document.querySelectorAll('input[name="public-cat-check"]:checked')).map(cb => cb.value);
-      if (selectedCats.length === 0) {
-        alert("Por favor, seleccioná al menos una Categoría/Liga.");
-        return;
-      }
       const categoryStr = selectedCats.join(", ");
 
       // Determinar si es menor para guardar parent/emergency contact
