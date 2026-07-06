@@ -2076,9 +2076,9 @@
             </select>
           </div>
           <div class="form-group" style="margin-bottom: 0;">
-            <label class="form-label" style="font-size: 0.6rem; margin-bottom: 2px;">Torneo</label>
-            <select id="admin-socios-filter-torneo" class="form-select" style="padding-left: 10px; font-size: 0.75rem; padding: 6px;" onchange="filtrarSociosAdmin()">
-              <option value="Todos">-- Todos los Torneos --</option>
+            <label class="form-label" style="font-size: 0.6rem; margin-bottom: 2px;">Liga</label>
+            <select id="admin-socios-filter-torneo" class="form-select" style="padding-left: 10px; font-size: 0.75rem; padding: 6px;" onchange="onAdminSociosLigaChange()">
+              <option value="Todos">-- Todas las Ligas --</option>
             </select>
           </div>
         </div>
@@ -2476,9 +2476,9 @@
             </select>
           </div>
           <div class="form-group" style="margin-bottom: 0;">
-            <label class="form-label" style="font-size: 0.6rem; margin-bottom: 2px;">Torneo / Liga</label>
-            <select id="admin-agenda-filter-torneo" class="form-select" style="padding-left: 10px; font-size: 0.75rem; padding: 6px;" onchange="filtrarPartidosAdmin()">
-              <option value="Todos">-- Todos los Torneos --</option>
+            <label class="form-label" style="font-size: 0.6rem; margin-bottom: 2px;">Liga</label>
+            <select id="admin-agenda-filter-torneo" class="form-select" style="padding-left: 10px; font-size: 0.75rem; padding: 6px;" onchange="onAdminAgendaLigaChange()">
+              <option value="Todos">-- Todas las Ligas --</option>
             </select>
           </div>
         </div>
@@ -4673,7 +4673,7 @@
       torneos.forEach(t => {
         const opt = document.createElement("option");
         opt.value = t.Torneo_ID;
-        opt.innerText = `${t.Name} (${t.Category})`;
+        opt.innerText = `${t.Name.split(" [Precio:")[0].trim()} (${t.Category})`;
         select.appendChild(opt);
       });
     }
@@ -4693,13 +4693,13 @@
       let direccion = "";
 
       if (isLocal) {
-        if (torneoId === "T-001" || cat.includes("+35")) {
+        if (torneoId === "T-EDEFI-May35" || cat.includes("+35")) {
           nombre = "Sede Central Haedo (Cancha Principal)";
           direccion = "Av. Rivadavia 16100, Haedo";
-        } else if (torneoId === "T-002" || cat.includes("+42")) {
+        } else if (torneoId === "T-EDEFI-May42" || cat.includes("+42")) {
           nombre = "Sede Polideportivo Morón (Cancha 2)";
           direccion = "Av. Eva Perón 1400, Morón";
-        } else if (torneoId === "T-003" || cat.includes("fem") || cat.includes("1ra")) {
+        } else if (torneoId === "T-BAFI-Fem1ra" || cat.includes("fem") || cat.includes("1ra")) {
           nombre = "Sede Microestadio Haedo Norte (Cancha 3)";
           direccion = "Marcos Sastre 450, Haedo";
         } else {
@@ -4950,44 +4950,54 @@
       });
     }
 
-    function cargarSelectSociosFilters() {
-      if (!estadoApp.datosAdmin) return;
+    function actualizarOpcionesCategorias(selectLigaId, selectCatId, onCompleteCallback) {
+      const selectLiga = document.getElementById(selectLigaId);
+      const selectCat = document.getElementById(selectCatId);
+      if (!selectLiga || !selectCat) return;
       
-      const torneos = estadoApp.datosAdmin.torneos || [];
-      const selectCat = document.getElementById("admin-socios-filter-cat");
-      const selectTorneo = document.getElementById("admin-socios-filter-torneo");
-      
+      const selectedLiga = selectLiga.value; // "Todos", "EDEFI", "BAFI", "FUTSALA"
       const prevCat = selectCat.value;
-      const prevTorneo = selectTorneo.value;
       
       selectCat.innerHTML = `<option value="Todos">-- Todas las Categorías --</option>`;
-      selectTorneo.innerHTML = `<option value="Todos">-- Todos los Torneos --</option>`;
       
-      const catsUnicas = [...new Set(torneos.map(t => t.Category))].filter(c => c !== "");
-      
-      const catNames = {
-        "Fut-May+35": "Futsal Mayores +35",
-        "Fut-May+42": "Futsal Mayores +42",
-        "Fut-Fem-1ra": "Futsal Femenino 1ra",
-        "Fut-Juv-5ta": "Futsal Juveniles 5ta",
-        "Bab-2015": "Baby Futbol - 2015"
-      };
-      
-      catsUnicas.forEach(cat => {
-        const name = catNames[cat] || cat;
-        selectCat.innerHTML += `<option value="${cat}">${name}</option>`;
-      });
-      
-      torneos.forEach(t => {
-        selectTorneo.innerHTML += `<option value="${t.Torneo_ID}">${t.Name}</option>`;
-      });
+      if (estadoApp.datosAdmin && estadoApp.datosAdmin.categorias) {
+        const cats = estadoApp.datosAdmin.categorias;
+        cats.forEach(c => {
+          if (selectedLiga === "Todos" || c.Torneos === selectedLiga) {
+            selectCat.innerHTML += `<option value="${c.Category_ID}">${c.Name}</option>`;
+          }
+        });
+      }
       
       if ([...selectCat.options].some(opt => opt.value === prevCat)) {
         selectCat.value = prevCat;
+      } else {
+        selectCat.value = "Todos";
       }
-      if ([...selectTorneo.options].some(opt => opt.value === prevTorneo)) {
-        selectTorneo.value = prevTorneo;
+      
+      if (typeof onCompleteCallback === "function") {
+        onCompleteCallback();
       }
+    }
+
+    function onAdminSociosLigaChange() {
+      actualizarOpcionesCategorias("admin-socios-filter-torneo", "admin-socios-filter-cat", filtrarSociosAdmin);
+    }
+
+    function cargarSelectSociosFilters() {
+      if (!estadoApp.datosAdmin) return;
+      
+      const selectTorneo = document.getElementById("admin-socios-filter-torneo");
+      if (selectTorneo) {
+        selectTorneo.innerHTML = `
+          <option value="Todos">-- Todas las Ligas --</option>
+          <option value="EDEFI">Liga EDEFI</option>
+          <option value="BAFI">Liga BAFI</option>
+          <option value="FUTSALA">Liga FUTSALA</option>
+        `;
+      }
+      
+      actualizarOpcionesCategorias("admin-socios-filter-torneo", "admin-socios-filter-cat");
     }
 
     function filtrarSociosAdmin() {
@@ -4995,13 +5005,12 @@
       
       const query = document.getElementById("admin-socios-search").value.toLowerCase().trim();
       const filterCat = document.getElementById("admin-socios-filter-cat").value;
-      const filterTorneo = document.getElementById("admin-socios-filter-torneo").value;
+      const filterTorneo = document.getElementById("admin-socios-filter-torneo").value; // Este es la Liga ahora
       const filterMes = document.getElementById("admin-socios-filter-mes").value;
       const filterEstado = document.getElementById("admin-socios-filter-estado").value;
       
       const socios = estadoApp.datosAdmin.socios || [];
       const pagos = estadoApp.datosAdmin.pagos || [];
-      const torneos = estadoApp.datosAdmin.torneos || [];
       
       const filteredSocios = socios.filter(socio => {
         const textMatch = !query || `${socio.Name} ${socio.Email}`.toLowerCase().includes(query);
@@ -5012,8 +5021,8 @@
         }
         
         if (filterTorneo !== "Todos") {
-          const torneo = torneos.find(t => t.Torneo_ID === filterTorneo);
-          if (!torneo || socio.Category !== torneo.Category) {
+          const catObj = (estadoApp.datosAdmin.categorias || []).find(c => c.Category_ID === socio.Category);
+          if (!catObj || catObj.Torneos !== filterTorneo) {
             return false;
           }
         }
@@ -7437,39 +7446,23 @@
       dibujarFinanzasAdmin(movimientosListaFiltrados);
     }
 
+    function onAdminAgendaLigaChange() {
+      actualizarOpcionesCategorias("admin-agenda-filter-torneo", "admin-agenda-filter-cat", filtrarPartidosAdmin);
+    }
+
     function cargarSelectAgendaFilters() {
       if (!estadoApp.datosAdmin) return;
-      const torneos = estadoApp.datosAdmin.torneos || [];
-      const selectCat = document.getElementById("admin-agenda-filter-cat");
       const selectTorneo = document.getElementById("admin-agenda-filter-torneo");
-      if (!selectCat || !selectTorneo) return;
+      if (!selectTorneo) return;
 
-      const prevCat = selectCat.value;
-      const prevTorneo = selectTorneo.value;
+      selectTorneo.innerHTML = `
+        <option value="Todos">-- Todas las Ligas --</option>
+        <option value="EDEFI">Liga EDEFI</option>
+        <option value="BAFI">Liga BAFI</option>
+        <option value="FUTSALA">Liga FUTSALA</option>
+      `;
 
-      selectCat.innerHTML = `<option value="Todos">-- Todas las Categorías --</option>`;
-      selectTorneo.innerHTML = `<option value="Todos">-- Todos los Torneos --</option>`;
-
-      const catsUnicas = [...new Set(torneos.map(t => t.Category))].filter(c => c !== "");
-      const catNames = {
-        "Fut-May+35": "Futsal Mayores +35",
-        "Fut-May+42": "Futsal Mayores +42",
-        "Fut-Fem-1ra": "Futsal Femenino 1ra",
-        "Fut-Juv-5ta": "Futsal Juveniles 5ta",
-        "Bab-2015": "Baby Fútbol 2015"
-      };
-
-      catsUnicas.forEach(cat => {
-        const name = catNames[cat] || cat;
-        selectCat.innerHTML += `<option value="${cat}">${name}</option>`;
-      });
-
-      torneos.forEach(t => {
-        selectTorneo.innerHTML += `<option value="${t.Torneo_ID}">${t.Name} (${t.Category})</option>`;
-      });
-
-      if ([...selectCat.options].some(opt => opt.value === prevCat)) selectCat.value = prevCat;
-      if ([...selectTorneo.options].some(opt => opt.value === prevTorneo)) selectTorneo.value = prevTorneo;
+      actualizarOpcionesCategorias("admin-agenda-filter-torneo", "admin-agenda-filter-cat");
     }
 
     // RENDER: FIXTURE DE PARTIDOS (ADMIN)
@@ -7513,7 +7506,7 @@
       
       const btnWrap = document.getElementById("btn-posiciones-wrap");
       if (btnWrap) {
-        btnWrap.style.display = (torneo !== "Todos") ? "flex" : "none";
+        btnWrap.style.display = (cat !== "Todos") ? "flex" : "none";
       }
 
       const items = document.querySelectorAll(".admin-partido-item");
@@ -7525,7 +7518,7 @@
         
         let show = true;
         if (cat !== "Todos" && pCat !== cat) show = false;
-        if (torneo !== "Todos" && pTorneo !== torneo) show = false;
+        if (torneo !== "Todos" && !pTorneo.includes(torneo)) show = false;
         if (start && pDate < start) show = false;
         if (end && pDate > end) show = false;
         
@@ -7535,28 +7528,31 @@
 
     // MODAL DE TABLA DE POSICIONES
     function abrirModalTablaPosiciones() {
-      const torneoId = document.getElementById("admin-agenda-filter-torneo") ? document.getElementById("admin-agenda-filter-torneo").value : "Todos";
-      if (!torneoId || torneoId === "Todos") return;
+      const cat = document.getElementById("admin-agenda-filter-cat") ? document.getElementById("admin-agenda-filter-cat").value : "Todos";
+      if (!cat || cat === "Todos") return;
 
       const torneos = (estadoApp.datosAdmin ? estadoApp.datosAdmin.torneos : []) || [];
-      const tObj = torneos.find(t => t.Torneo_ID === torneoId);
-      const torneoName = tObj ? tObj.Name : "Torneo";
-      const catName = tObj ? ` (${tObj.Category})` : "";
+      const tObj = torneos.find(t => t.Category === cat);
+      if (!tObj) return;
+      
+      const torneoId = tObj.Torneo_ID;
+      const torneoName = tObj.Name.split(" [Precio:")[0];
+      const catLabel = ` (${tObj.Category})`;
 
-      document.getElementById("modal-posiciones-titulo").innerHTML = `<i class="fa-solid fa-trophy" style="color:#fbbf24; margin-right:6px;"></i> Posiciones · ${torneoName}${catName}`;
+      document.getElementById("modal-posiciones-titulo").innerHTML = `<i class="fa-solid fa-trophy" style="color:#fbbf24; margin-right:6px;"></i> Posiciones · ${torneoName}${catLabel}`;
 
       const container = document.getElementById("tabla-posiciones-content");
       if (!container) return;
 
       const torneoMapTeams = {
-        "T-001": ["Haedo Futsal", "Defensores de Haedo", "Huracán", "Deportivo Morón", "Gimnasia", "Ramos Mejía", "San Justo", "Ituzaingó", "Liniers", "Almagro"],
-        "T-002": ["Haedo Futsal", "Deportivo Morón", "Gimnasia", "Ramos Mejía", "San Justo", "Ateneo", "Almafuerte", "Ituzaingó", "Liniers", "Almagro"],
-        "T-003": ["Haedo Futsal", "Gimnasia Fem", "Ramos Mejía Fem", "San Justo Fem", "Ateneo Fem", "Almafuerte Fem", "Ituzaingó Fem", "Liniers Fem", "Almagro Fem", "CIDECO Fem"],
-        "T-004": ["Haedo Futsal", "Ramos Mejía Juv", "San Justo Juv", "Ateneo Juv", "Almafuerte Juv", "Ituzaingó Juv", "Liniers Juv", "Almagro Juv", "Estrella Juv", "Defensores Juv"],
-        "T-005": ["Haedo Futsal", "San Justo Baby", "Ateneo Baby", "Almafuerte Baby", "Ituzaingó Baby", "Liniers Baby", "Almagro Baby", "Pearson Baby", "CIDECO Baby", "Estrella Baby"]
+        "T-EDEFI-May35": ["Haedo Futsal", "Defensores de Haedo", "Huracán", "Deportivo Morón", "Gimnasia", "Ramos Mejía", "San Justo", "Ituzaingó", "Liniers", "Almagro"],
+        "T-EDEFI-May42": ["Haedo Futsal", "Deportivo Morón", "Gimnasia", "Ramos Mejía", "San Justo", "Ateneo", "Almafuerte", "Ituzaingó", "Liniers", "Almagro"],
+        "T-BAFI-Fem1ra": ["Haedo Futsal", "Gimnasia Fem", "Ramos Mejía Fem", "San Justo Fem", "Ateneo Fem", "Almafuerte Fem", "Ituzaingó Fem", "Liniers Fem", "Almagro Fem", "CIDECO Fem"],
+        "T-FUTSALA-Masc5ta": ["Haedo Futsal", "Ramos Mejía Juv", "San Justo Juv", "Ateneo Juv", "Almafuerte Juv", "Ituzaingó Juv", "Liniers Juv", "Almagro Juv", "Estrella Juv", "Defensores Juv"],
+        "T-EDEFI-Baby": ["Haedo Futsal", "San Justo Baby", "Ateneo Baby", "Almafuerte Baby", "Ituzaingó Baby", "Liniers Baby", "Almagro Baby", "Pearson Baby", "CIDECO Baby", "Estrella Baby"]
       };
 
-      const teamList = torneoMapTeams[torneoId] || torneoMapTeams["T-001"];
+      const teamList = torneoMapTeams[torneoId] || torneoMapTeams["T-EDEFI-May35"];
       const stats = {};
       
       teamList.forEach((team, idx) => {
