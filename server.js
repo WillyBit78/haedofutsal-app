@@ -130,7 +130,7 @@ const SHEET_HEADERS = {
   'Categorias': ["Category_ID", "Name", "Coach", "Monthly_Fee", "Torneos"],
   'Usuarios': ["Email", "Role", "Name", "Phone", "Category", "DNI", "BirthDate", "Age", "JoinDate", "BloodType", "MedicalFit", "ObraSocial", "EmergencyContact", "EmergencyPhone", "ParentName", "ParentPhone", "Notes", "Photo", "Username", "Password"],
   'Pagos': ["Payment_ID", "Email", "Month", "Amount", "Status", "MP_Link", "Collected_By", "Collected_At"],
-  'Torneos': ["Torneo_ID", "Name", "Category"],
+  'Torneos': ["Torneo_ID", "Name", "Category", "Ticket_Price"],
   'Finanzas_Torneos': ["Movimiento_ID", "Torneo_ID", "Type", "Concept", "Amount", "Date", "Payment_Method"],
   'Partidos': ["Partido_ID", "Torneo_ID", "Date", "Opponent", "Location", "Result", "Scorers", "Cards", "MVP", "Summary"],
   'Logs_Audit': ["Timestamp", "User", "Action", "Details"]
@@ -492,7 +492,7 @@ app.post('/api/run', (req, res) => {
     const result = func.apply(null, args || []);
 
     // Sincronización en vivo con Supabase en operaciones de escritura
-    const writeOps = ['registrarSocioNuevo', 'marcarPagoComoPagado', 'generarPagoMercadoPago', 'registrarPartidoNuevo', 'registrarMovimientoTorneo', 'editarMovimientoTorneo', 'eliminarMovimientoTorneo'];
+    const writeOps = ['registrarSocioNuevo', 'marcarPagoComoPagado', 'generarPagoMercadoPago', 'registrarPartidoNuevo', 'registrarMovimientoTorneo', 'editarMovimientoTorneo', 'eliminarMovimientoTorneo', 'actualizarPrecios'];
     if (writeOps.includes(functionName)) {
       try {
         const https = require('https');
@@ -660,6 +660,7 @@ app.get('/run-migration', async (req, res) => {
         ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS password TEXT;
         UPDATE usuarios SET username = split_part(email, '@', 1) WHERE username IS NULL;
         UPDATE usuarios SET password = '1234' WHERE password IS NULL;
+        ALTER TABLE torneos ADD COLUMN IF NOT EXISTS ticket_price NUMERIC DEFAULT 0;
       `);
       await client.end();
       return res.send(`✅ Migración ejecutada con éxito en Supabase usando ${t.host}! (Project Ref: ${ref})`);
