@@ -20,6 +20,22 @@ const HOJA_FINANZAS = "Finanzas_Torneos";
 const HOJA_PARTIDOS = "Partidos";
 const HOJA_LOGS = "Logs_Audit";
 
+function obtenerCategoriaPadre(subCat) {
+  if (!subCat) return "EDEFI-Mayores";
+  const sc = subCat.toLowerCase().trim();
+  if (sc.includes("edefi") && (sc.includes("+30") || sc.includes("+35") || sc.includes("+42") || sc.includes("mayores"))) return "EDEFI-Mayores";
+  if (sc.includes("edefi") && sc.includes("baby")) return "EDEFI-Baby";
+  if (sc.includes("bafi") && (sc.includes("femenino") || sc.includes("fem"))) return "BAFI-Femenino";
+  if (sc.includes("bafi") && (sc.includes("masculino") || sc.includes("masc"))) return "BAFI-Masculino";
+  if (sc.includes("futsala") && (sc.includes("masculino") || sc.includes("masc"))) return "FUTSALA-Masculino";
+  if (sc.includes("futsala") && (sc.includes("promocionales") || sc.includes("prom"))) return "FUTSALA-Promocionales";
+  
+  if (subCat === "EDEFI-Mayores" || subCat === "EDEFI-Baby" || subCat === "BAFI-Femenino" || subCat === "BAFI-Masculino" || subCat === "FUTSALA-Masculino" || subCat === "FUTSALA-Promocionales") {
+    return subCat;
+  }
+  return "EDEFI-Mayores";
+}
+
 /**
  * Endpoint POST para sincronización de API externa (Node.js / Render)
  */
@@ -225,16 +241,7 @@ function obtenerDatosSocio(email) {
       const tNameCol = tHeaders.indexOf("Name");
 
       // Mapear cada sub-categoría del socio a su categoría padre
-      const parentCategories = socioCategories.map(sc => {
-        const s = sc.toLowerCase().trim();
-        if (s.includes("edefi") && (s.includes("+30") || s.includes("+35") || s.includes("+42") || s.includes("mayores"))) return "EDEFI-Mayores";
-        if (s.includes("edefi") && s.includes("baby")) return "EDEFI-Baby";
-        if (s.includes("bafi") && (s.includes("femenino") || s.includes("fem"))) return "BAFI-Femenino";
-        if (s.includes("bafi") && (s.includes("masculino") || s.includes("masc"))) return "BAFI-Masculino";
-        if (s.includes("futsala") && (s.includes("masculino") || s.includes("masc"))) return "FUTSALA-Masculino";
-        if (s.includes("futsala") && (s.includes("promocionales") || s.includes("prom"))) return "FUTSALA-Promocionales";
-        return "EDEFI-Mayores";
-      });
+      const parentCategories = socioCategories.map(obtenerCategoriaPadre);
 
       // Obtener torneos que disputa cualquiera de sus categorías
       const misTorneosIds = [];
@@ -286,10 +293,21 @@ function obtenerDatosSocio(email) {
       const catHeaders = catData[0];
       const catIdCol = catHeaders.indexOf("Category_ID");
       const catNameCol = catHeaders.indexOf("Name");
+      
+      const parentCatNames = {
+        "EDEFI-Mayores": "EDEFI Mayores",
+        "EDEFI-Baby": "EDEFI Baby",
+        "BAFI-Femenino": "BAFI Femenino",
+        "BAFI-Masculino": "BAFI Masculino",
+        "FUTSALA-Masculino": "FUTSALA Masculino",
+        "FUTSALA-Promocionales": "FUTSALA Promocionales"
+      };
+      
       for (let i = 1; i < catData.length; i++) {
         const cId = getVal(catData[i], catIdCol);
         if (cId) {
-          categoriasMap[cId] = getVal(catData[i], catNameCol);
+          const parentId = obtenerCategoriaPadre(cId);
+          categoriasMap[parentId] = parentCatNames[parentId] || parentId.replace("-", " ");
         }
       }
     }
@@ -518,7 +536,7 @@ function obtenerDatosAdmin() {
     });
     todosLosPartidos.sort((a, b) => (b.Date || "").localeCompare(a.Date || ""));
     
-    // 5. Cargar Categorías
+    // 5. Cargar Categorías agrupadas
     const categorias = [];
     const sheetCategorias = ss.getSheetByName(HOJA_CATEGORIAS);
     if (sheetCategorias) {
@@ -532,16 +550,54 @@ function obtenerDatosAdmin() {
       const catFeeCol = catHeaders.indexOf("Monthly_Fee");
       const catTorneosCol = catHeaders.indexOf("Torneos");
       
+      const parentCatNames = {
+        "EDEFI-Mayores": "EDEFI Mayores",
+        "EDEFI-Baby": "EDEFI Baby",
+        "BAFI-Femenino": "BAFI Femenino",
+        "BAFI-Masculino": "BAFI Masculino",
+        "FUTSALA-Masculino": "FUTSALA Masculino",
+        "FUTSALA-Promocionales": "FUTSALA Promocionales"
+      };
+      
+      const parentCatsGrouped = {};
+      Object.keys(parentCatNames).forEach(id => {
+        parentCatsGrouped[id] = {
+          Category_ID: id,
+          Name: parentCatNames[id],
+          Coach: "",
+          Monthly_Fee: 0,
+          Torneos: "",
+          count: 0
+        };
+      });
+      
       rowsCategorias.forEach(row => {
         const cId = getVal(row, catIdCol);
         if (!cId) return;
-        categorias.push({
-          Category_ID: cId,
-          Name: getVal(row, catNameCol),
-          Coach: getVal(row, catCoachCol),
-          Monthly_Fee: parseFloat(getVal(row, catFeeCol)) || 0,
-          Torneos: getVal(row, catTorneosCol)
-        });
+        const parentId = obtenerCategoriaPadre(cId);
+        
+        if (parentCatsGrouped[parentId]) {
+          const fee = parseFloat(getVal(row, catFeeCol)) || 0;
+          if (fee && (!parentCatsGrouped[parentId].Monthly_Fee || fee > parentCatsGrouped[parentId].Monthly_Fee)) {
+            parentCatsGrouped[parentId].Monthly_Fee = fee;
+          }
+          
+          const coach = getVal(row, catCoachCol);
+          if (coach && !parentCatsGrouped[parentId].Coach) {
+            parentCatsGrouped[parentId].Coach = coach;
+          }
+          
+          const torneoName = getVal(row, catTorneosCol);
+          if (torneoName && !parentCatsGrouped[parentId].Torneos) {
+            parentCatsGrouped[parentId].Torneos = torneoName;
+          }
+          
+          parentCatsGrouped[parentId].count++;
+        }
+      });
+      
+      Object.values(parentCatsGrouped).forEach(cat => {
+        categorias.push(cat);
       });
     }
     
@@ -1699,11 +1755,24 @@ function obtenerCategoriasPublicas() {
     }
 
     const categorias = [];
+    const added = new Set();
+    const parentCatNames = {
+      "EDEFI-Mayores": "EDEFI Mayores",
+      "EDEFI-Baby": "EDEFI Baby",
+      "BAFI-Femenino": "BAFI Femenino",
+      "BAFI-Masculino": "BAFI Masculino",
+      "FUTSALA-Masculino": "FUTSALA Masculino",
+      "FUTSALA-Promocionales": "FUTSALA Promocionales"
+    };
+    
     for (let i = 1; i < data.length; i++) {
       const id = (data[i][idColIdx] || "").toString().trim();
-      const name = (data[i][nameColIdx] || "").toString().trim();
-      if (id && name) {
-        categorias.push({ id: id, name: name });
+      if (id) {
+        const parentId = obtenerCategoriaPadre(id);
+        if (!added.has(parentId)) {
+          added.add(parentId);
+          categorias.push({ id: parentId, name: parentCatNames[parentId] || parentId.replace("-", " ") });
+        }
       }
     }
 
@@ -2226,9 +2295,10 @@ function actualizarPrecios(categoriasObj, torneosObj, userEmail) {
       if (idIdx !== -1 && feeIdx !== -1) {
         for (let i = 1; i < data.length; i++) {
           const catId = data[i][idIdx];
-          if (categoriasObj[catId] !== undefined) {
+          const parentCatId = obtenerCategoriaPadre(catId);
+          if (categoriasObj[parentCatId] !== undefined) {
             const oldVal = parseFloat(data[i][feeIdx]) || 0;
-            const newVal = parseFloat(categoriasObj[catId]) || 0;
+            const newVal = parseFloat(categoriasObj[parentCatId]) || 0;
             if (oldVal !== newVal) {
               const catName = nameIdx !== -1 ? data[i][nameIdx] : catId;
               sheetCategorias.getRange(i + 1, feeIdx + 1).setValue(newVal);
@@ -2246,16 +2316,20 @@ function actualizarPrecios(categoriasObj, torneosObj, userEmail) {
       const headers = data[0];
       const idIdx = headers.indexOf("Torneo_ID");
       const nameIdx = headers.indexOf("Name");
+      const catIdx = headers.indexOf("Category");
       
       if (idIdx !== -1 && nameIdx !== -1) {
         for (let i = 1; i < data.length; i++) {
           const torneoId = data[i][idIdx];
-          if (torneosObj[torneoId] !== undefined) {
+          const catVal = catIdx !== -1 ? data[i][catIdx] : "";
+          const parentCatId = obtenerCategoriaPadre(catVal || torneoId);
+          
+          if (torneosObj[parentCatId] !== undefined) {
             const rawName = data[i][nameIdx].toString();
             const nameLimpio = rawName.split(" [Precio:")[0].trim();
             const match = rawName.match(/\[Precio:\s*(\d+)\]/);
             const oldVal = match ? parseFloat(match[1]) : 0;
-            const newVal = parseFloat(torneosObj[torneoId]) || 0;
+            const newVal = parseFloat(torneosObj[parentCatId]) || 0;
             
             if (oldVal !== newVal) {
               const nuevoNombre = `${nameLimpio} [Precio: ${newVal}]`;
