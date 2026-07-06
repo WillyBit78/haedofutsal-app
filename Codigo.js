@@ -413,6 +413,7 @@ function obtenerDatosAdmin() {
     const tIdCol = tHeaders.indexOf("Torneo_ID");
     const tNameCol = tHeaders.indexOf("Name");
     const tCatCol = tHeaders.indexOf("Category");
+    const tTicketCol = tHeaders.indexOf("Ticket_Price");
     
     rowsTorneos.forEach(row => {
       const tId = getVal(row, tIdCol);
@@ -421,6 +422,7 @@ function obtenerDatosAdmin() {
         Torneo_ID: tId,
         Name: getVal(row, tNameCol),
         Category: getVal(row, tCatCol),
+        Ticket_Price: parseFloat(getVal(row, tTicketCol)) || 0,
         Ingresos: 0,
         Gastos: 0,
         Balance: 0
@@ -504,6 +506,33 @@ function obtenerDatosAdmin() {
     });
     todosLosPartidos.sort((a, b) => (b.Date || "").localeCompare(a.Date || ""));
     
+    // 5. Cargar Categorías
+    const categorias = [];
+    const sheetCategorias = ss.getSheetByName(HOJA_CATEGORIAS);
+    if (sheetCategorias) {
+      const catData = sheetCategorias.getDataRange().getValues();
+      const catHeaders = catData[0] || [];
+      const rowsCategorias = catData.slice(1);
+      
+      const catIdCol = catHeaders.indexOf("Category_ID");
+      const catNameCol = catHeaders.indexOf("Name");
+      const catCoachCol = catHeaders.indexOf("Coach");
+      const catFeeCol = catHeaders.indexOf("Monthly_Fee");
+      const catTorneosCol = catHeaders.indexOf("Torneos");
+      
+      rowsCategorias.forEach(row => {
+        const cId = getVal(row, catIdCol);
+        if (!cId) return;
+        categorias.push({
+          Category_ID: cId,
+          Name: getVal(row, catNameCol),
+          Coach: getVal(row, catCoachCol),
+          Monthly_Fee: parseFloat(getVal(row, catFeeCol)) || 0,
+          Torneos: getVal(row, catTorneosCol)
+        });
+      });
+    }
+    
     return {
       success: true,
       metrics: {
@@ -515,6 +544,7 @@ function obtenerDatosAdmin() {
       deudores: listaDeudores,
       pagos: todosLosPagos,
       torneos: torneos,
+      categorias: categorias,
       finanzas: todosLosMovimientos,
       partidos: todosLosPartidos
     };
@@ -1773,5 +1803,65 @@ function ejecutarMigracionSupabase() {
   } catch (err) {
     Logger.log("❌ Error: " + err.message);
     throw new Error("Error en migración JDBC: " + err.message);
+  }
+}
+
+/**
+ * Actualiza los precios de cuotas de categorías y valor de entradas de torneos.
+ * @param {Object} categoriasObj Mapa de Category_ID a Monthly_Fee
+ * @param {Object} torneosObj Mapa de Torneo_ID a Ticket_Price
+ */
+function actualizarPrecios(categoriasObj, torneosObj) {
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    
+    // 1. Actualizar Categorías
+    const sheetCategorias = ss.getSheetByName(HOJA_CATEGORIAS);
+    if (sheetCategorias) {
+      const data = sheetCategorias.getDataRange().getValues();
+      const headers = data[0];
+      const idIdx = headers.indexOf("Category_ID");
+      const feeIdx = headers.indexOf("Monthly_Fee");
+      
+      if (idIdx !== -1 && feeIdx !== -1) {
+        for (let i = 1; i < data.length; i++) {
+          const catId = data[i][idIdx];
+          if (categoriasObj[catId] !== undefined) {
+            const newVal = parseFloat(categoriasObj[catId]) || 0;
+            sheetCategorias.getRange(i + 1, feeIdx + 1).setValue(newVal);
+          }
+        }
+      }
+    }
+    
+    // 2. Actualizar Torneos
+    const sheetTorneos = ss.getSheetByName(HOJA_TORNEOS);
+    if (sheetTorneos) {
+      const data = sheetTorneos.getDataRange().getValues();
+      const headers = data[0];
+      const idIdx = headers.indexOf("Torneo_ID");
+      const ticketIdx = headers.indexOf("Ticket_Price");
+      
+      if (idIdx !== -1) {
+        let targetCol = ticketIdx;
+        if (targetCol === -1) {
+          targetCol = headers.length;
+          sheetTorneos.getRange(1, targetCol + 1).setValue("Ticket_Price");
+        }
+        
+        for (let i = 1; i < data.length; i++) {
+          const torneoId = data[i][idIdx];
+          if (torneosObj[torneoId] !== undefined) {
+            const newVal = parseFloat(torneosObj[torneoId]) || 0;
+            sheetTorneos.getRange(i + 1, targetCol + 1).setValue(newVal);
+          }
+        }
+      }
+    }
+    
+    return { success: true, message: "Precios actualizados correctamente." };
+  } catch (error) {
+    console.error("Error en actualizarPrecios:", error);
+    return { success: false, message: error.toString() };
   }
 }
