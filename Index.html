@@ -1420,6 +1420,32 @@
         flex: none !important;
       }
     }
+    
+    /* Estilos para Acordeones de Finanzas */
+    .accordion-header {
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      user-select: none;
+      transition: background-color 0.2s ease;
+      padding: 4px 0;
+    }
+    .accordion-header:hover {
+      opacity: 0.8;
+    }
+    .accordion-arrow {
+      transition: transform 0.2s ease;
+      font-size: 0.85rem;
+      color: #64748b;
+    }
+    .accordion-header.active .accordion-arrow {
+      transform: rotate(180deg);
+    }
+    .accordion-body {
+      transition: max-height 0.3s ease-out;
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
@@ -2096,8 +2122,7 @@
         <div class="header-brand">
           <img src="logo.png" class="club-header-logo" alt="Haedo Futsal">
           <div class="header-info">
-            <h2 style="margin:0; font-size:1.3rem; font-weight:800; color:#0f172a;">Finanzas y Tesorería</h2>
-            <p style="font-size:0.75rem;">Resumen simplificado y control de flujo de caja</p>
+            <h2 style="margin:0; font-size:1.3rem; font-weight:800; color:#0f172a;">Finanzas</h2>
           </div>
         </div>
         <div style="display:flex; align-items:center; gap:8px;">
@@ -2115,238 +2140,309 @@
       
       <!-- ITEM PRINCIPAL: BALANCE GENERAL -->
       <div class="card" style="margin-bottom: 10px; padding: 14px 16px; background: #ffffff; border: 1px solid var(--border-color); border-left: 5px solid var(--primary); box-shadow: var(--shadow-premium);">
-        <div style="margin-bottom: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
+        <div class="accordion-header" onclick="toggleFinanzasAccordion('acc-balance', this)">
           <h3 style="font-size: 1.05rem; font-weight: 800; margin: 0; color: #0f172a; display: flex; align-items: center; gap: 8px;">
             <i class="fa-solid fa-scale-balanced" style="color: var(--primary); font-size: 1.1rem;"></i> Balance General <span id="lbl-balance-rango" style="font-size:0.72rem; color:var(--text-muted); font-weight:500;">(Junio 2026)</span>
           </h3>
+          <i class="fa-solid fa-chevron-down accordion-arrow"></i>
         </div>
         
-        <!-- 3 CATEGORÍAS ALINEADAS EN COLUMNAS (NOMBRE Y DEBAJO IMPORTE) -->
-        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 14px;">
-          <div onclick="abrirModalDesglose('balIngresos')" title="Hacé click para ver desglose Efectivo vs Transferencia" style="cursor:pointer; background: rgba(22, 163, 74, 0.08); border: 1px solid rgba(22, 163, 74, 0.25); padding: 8px 10px; border-radius: 10px; text-align: center; display: flex; flex-direction: column; justify-content: center; box-shadow: 0 2px 6px rgba(0,0,0,0.04);">
-            <span style="font-size: 0.62rem; font-weight: 700; text-transform: uppercase; color: var(--success); letter-spacing: 0.5px; margin-bottom: 2px;">Ingresos Totales</span>
-            <strong id="admin-balance-total-ingresos" style="font-size: 0.95rem; font-weight: 800; color: var(--success);">$0</strong>
+        <div id="acc-balance" class="accordion-body" style="display: none;">
+          <!-- 3 CATEGORÍAS ALINEADAS EN COLUMNAS (NOMBRE Y DEBAJO IMPORTE) -->
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 14px;">
+            <div onclick="abrirModalDesglose('balIngresos')" title="Hacé click para ver desglose Efectivo vs Transferencia" style="cursor:pointer; background: rgba(22, 163, 74, 0.08); border: 1px solid rgba(22, 163, 74, 0.25); padding: 8px 10px; border-radius: 10px; text-align: center; display: flex; flex-direction: column; justify-content: center; box-shadow: 0 2px 6px rgba(0,0,0,0.04);">
+              <span style="font-size: 0.62rem; font-weight: 700; text-transform: uppercase; color: var(--success); letter-spacing: 0.5px; margin-bottom: 2px;">Ingresos</span>
+              <strong id="admin-balance-total-ingresos" style="font-size: 0.95rem; font-weight: 800; color: var(--success);">$0</strong>
+            </div>
+            
+            <div onclick="abrirModalDesglose('balGastos')" title="Hacé click para ver desglose Efectivo vs Transferencia" style="cursor:pointer; background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.25); padding: 8px 10px; border-radius: 10px; text-align: center; display: flex; flex-direction: column; justify-content: center; box-shadow: 0 2px 6px rgba(0,0,0,0.04);">
+              <span style="font-size: 0.62rem; font-weight: 700; text-transform: uppercase; color: var(--danger); letter-spacing: 0.5px; margin-bottom: 2px;">Gastos</span>
+              <strong id="admin-balance-total-gastos" style="font-size: 0.95rem; font-weight: 800; color: var(--danger);">$0</strong>
+            </div>
+            
+            <div onclick="abrirModalDesglose('balNeto')" title="Hacé click para ver desglose Efectivo vs Transferencia" style="cursor:pointer; background: rgba(37, 99, 235, 0.08); border: 1px solid rgba(37, 99, 235, 0.25); padding: 8px 10px; border-radius: 10px; text-align: center; display: flex; flex-direction: column; justify-content: center; box-shadow: 0 2px 6px rgba(0,0,0,0.04);">
+              <span style="font-size: 0.62rem; font-weight: 800; text-transform: uppercase; color: #1d4ed8; letter-spacing: 0.5px; margin-bottom: 2px;">Neto</span>
+              <strong id="admin-balance-total-neto" style="font-size: 1.05rem; font-weight: 800; color: #1e40af;">$0</strong>
+            </div>
           </div>
           
-          <div onclick="abrirModalDesglose('balGastos')" title="Hacé click para ver desglose Efectivo vs Transferencia" style="cursor:pointer; background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.25); padding: 8px 10px; border-radius: 10px; text-align: center; display: flex; flex-direction: column; justify-content: center; box-shadow: 0 2px 6px rgba(0,0,0,0.04);">
-            <span style="font-size: 0.62rem; font-weight: 700; text-transform: uppercase; color: var(--danger); letter-spacing: 0.5px; margin-bottom: 2px;">Gastos Totales</span>
-            <strong id="admin-balance-total-gastos" style="font-size: 0.95rem; font-weight: 800; color: var(--danger);">$0</strong>
-          </div>
-          
-          <div onclick="abrirModalDesglose('balNeto')" title="Hacé click para ver desglose Efectivo vs Transferencia" style="cursor:pointer; background: rgba(37, 99, 235, 0.08); border: 1px solid rgba(37, 99, 235, 0.25); padding: 8px 10px; border-radius: 10px; text-align: center; display: flex; flex-direction: column; justify-content: center; box-shadow: 0 2px 6px rgba(0,0,0,0.04);">
-            <span style="font-size: 0.62rem; font-weight: 800; text-transform: uppercase; color: #1d4ed8; letter-spacing: 0.5px; margin-bottom: 2px;">Resultado Neto</span>
-            <strong id="admin-balance-total-neto" style="font-size: 1.05rem; font-weight: 800; color: #1e40af;">$0</strong>
-          </div>
-        </div>
-        
-        <!-- FILTROS BALANCE GENERAL -->
-        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-          <div style="flex: 1; min-width: 130px;">
-            <label class="form-label" style="font-size: 0.62rem; margin-bottom: 2px; color:var(--text-muted);">Desde Mes</label>
-            <select id="fin-balance-mes-inicio" class="form-select" style="padding: 5px 10px; font-size: 0.78rem; background: #ffffff; color:#0f172a;" onchange="sincronizarFiltrosBalance()">
-              <option value="2026-01">2026-01 (Enero)</option>
-              <option value="2026-02">2026-02 (Febrero)</option>
-              <option value="2026-03">2026-03 (Marzo)</option>
-              <option value="2026-04">2026-04 (Abril)</option>
-              <option value="2026-05">2026-05 (Mayo)</option>
-              <option value="2026-06" selected>2026-06 (Junio)</option>
-            </select>
-          </div>
-          <div style="flex: 1; min-width: 130px;">
-            <label class="form-label" style="font-size: 0.62rem; margin-bottom: 2px; color:var(--text-muted);">Hasta Mes</label>
-            <select id="fin-balance-mes-fin" class="form-select" style="padding: 5px 10px; font-size: 0.78rem; background: #ffffff; color:#0f172a;" onchange="sincronizarFiltrosBalance()">
-              <option value="2026-01">2026-01 (Enero)</option>
-              <option value="2026-02">2026-02 (Febrero)</option>
-              <option value="2026-03">2026-03 (Marzo)</option>
-              <option value="2026-04">2026-04 (Abril)</option>
-              <option value="2026-05">2026-05 (Mayo)</option>
-              <option value="2026-06" selected>2026-06 (Junio)</option>
-            </select>
+          <!-- FILTROS BALANCE GENERAL -->
+          <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 130px;">
+              <label class="form-label" style="font-size: 0.62rem; margin-bottom: 2px; color:var(--text-muted);">Desde Mes</label>
+              <select id="fin-balance-mes-inicio" class="form-select" style="padding: 5px 10px; font-size: 0.78rem; background: #ffffff; color:#0f172a;" onchange="sincronizarFiltrosBalance()">
+                <option value="2026-01">2026-01 (Enero)</option>
+                <option value="2026-02">2026-02 (Febrero)</option>
+                <option value="2026-03">2026-03 (Marzo)</option>
+                <option value="2026-04">2026-04 (Abril)</option>
+                <option value="2026-05">2026-05 (Mayo)</option>
+                <option value="2026-06" selected>2026-06 (Junio)</option>
+              </select>
+            </div>
+            <div style="flex: 1; min-width: 130px;">
+              <label class="form-label" style="font-size: 0.62rem; margin-bottom: 2px; color:var(--text-muted);">Hasta Mes</label>
+              <select id="fin-balance-mes-fin" class="form-select" style="padding: 5px 10px; font-size: 0.78rem; background: #ffffff; color:#0f172a;" onchange="sincronizarFiltrosBalance()">
+                <option value="2026-01">2026-01 (Enero)</option>
+                <option value="2026-02">2026-02 (Febrero)</option>
+                <option value="2026-03">2026-03 (Marzo)</option>
+                <option value="2026-04">2026-04 (Abril)</option>
+                <option value="2026-05">2026-05 (Mayo)</option>
+                <option value="2026-06" selected>2026-06 (Junio)</option>
+              </select>
+            </div>
           </div>
         </div>
       </div>
 
       <!-- ITEM 1: CUOTAS MENSUALES DE SOCIOS -->
       <div class="card" style="margin-bottom: 8px; padding: 12px 14px; background: #ffffff; border-left: 4px solid var(--primary);">
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; border-bottom: 1px solid var(--border-color); padding-bottom: 6px;">
+        <div class="accordion-header" onclick="toggleFinanzasAccordion('acc-cuotas', this)">
           <h3 style="font-size: 0.9rem; font-weight: 700; margin: 0; color: #0f172a; display: flex; align-items: center; gap: 6px;">
             <i class="fa-solid fa-file-invoice-dollar" style="color: var(--primary);"></i> Cuotas Mensuales <span id="lbl-cuotas-rango" style="font-size:0.7rem; color:var(--text-muted); font-weight:500;">(Junio 2026)</span>
           </h3>
-          <div style="display: flex; align-items: center; gap: 12px; font-size: 0.78rem;">
+          <i class="fa-solid fa-chevron-down accordion-arrow"></i>
+        </div>
+        
+        <div id="acc-cuotas" class="accordion-body" style="display: none;">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; border-bottom: 1px solid var(--border-color); padding-bottom: 6px; font-size: 0.78rem;">
             <span onclick="abrirModalDesglose('cuotasRecaudado')" title="Hacé click para ver desglose Efectivo vs Transferencia" style="cursor:pointer; color: var(--success); font-weight: 700; background: rgba(22, 163, 74, 0.12); border: 1px solid rgba(22, 163, 74, 0.3); padding: 4px 10px; border-radius: 8px; display: inline-flex; align-items: center;">Recaudado: <strong id="admin-cuotas-total-recaudado" style="font-size:0.95rem; margin-left:4px;">$0</strong></span>
             <span style="color: var(--danger); font-weight: 700;">Deuda: <strong id="admin-cuotas-total-deuda" style="font-size:0.95rem;">$0</strong></span>
           </div>
-        </div>
-        
-        <!-- FILTROS CUOTAS -->
-        <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-          <div style="flex: 1; min-width: 120px;">
-            <label class="form-label" style="font-size: 0.6rem; margin-bottom: 2px;">Desde Mes</label>
-            <select id="fin-cuotas-mes-inicio" class="form-select" style="padding: 4px 8px; font-size: 0.75rem;" onchange="filtrarYCalcularFinanzas()">
-              <option value="2026-01">2026-01 (Enero)</option>
-              <option value="2026-02">2026-02 (Febrero)</option>
-              <option value="2026-03">2026-03 (Marzo)</option>
-              <option value="2026-04">2026-04 (Abril)</option>
-              <option value="2026-05">2026-05 (Mayo)</option>
-              <option value="2026-06" selected>2026-06 (Junio)</option>
-            </select>
-          </div>
-          <div style="flex: 1; min-width: 120px;">
-            <label class="form-label" style="font-size: 0.6rem; margin-bottom: 2px;">Hasta Mes</label>
-            <select id="fin-cuotas-mes-fin" class="form-select" style="padding: 4px 8px; font-size: 0.75rem;" onchange="filtrarYCalcularFinanzas()">
-              <option value="2026-01">2026-01 (Enero)</option>
-              <option value="2026-02">2026-02 (Febrero)</option>
-              <option value="2026-03">2026-03 (Marzo)</option>
-              <option value="2026-04">2026-04 (Abril)</option>
-              <option value="2026-05">2026-05 (Mayo)</option>
-              <option value="2026-06" selected>2026-06 (Junio)</option>
-            </select>
+          
+          <!-- FILTROS CUOTAS -->
+          <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 120px;">
+              <label class="form-label" style="font-size: 0.6rem; margin-bottom: 2px;">Desde Mes</label>
+              <select id="fin-cuotas-mes-inicio" class="form-select" style="padding: 4px 8px; font-size: 0.75rem;" onchange="filtrarYCalcularFinanzas()">
+                <option value="2026-01">2026-01 (Enero)</option>
+                <option value="2026-02">2026-02 (Febrero)</option>
+                <option value="2026-03">2026-03 (Marzo)</option>
+                <option value="2026-04">2026-04 (Abril)</option>
+                <option value="2026-05">2026-05 (Mayo)</option>
+                <option value="2026-06" selected>2026-06 (Junio)</option>
+              </select>
+            </div>
+            <div style="flex: 1; min-width: 120px;">
+              <label class="form-label" style="font-size: 0.6rem; margin-bottom: 2px;">Hasta Mes</label>
+              <select id="fin-cuotas-mes-fin" class="form-select" style="padding: 4px 8px; font-size: 0.75rem;" onchange="filtrarYCalcularFinanzas()">
+                <option value="2026-01">2026-01 (Enero)</option>
+                <option value="2026-02">2026-02 (Febrero)</option>
+                <option value="2026-03">2026-03 (Marzo)</option>
+                <option value="2026-04">2026-04 (Abril)</option>
+                <option value="2026-05">2026-05 (Mayo)</option>
+                <option value="2026-06" selected>2026-06 (Junio)</option>
+              </select>
+            </div>
           </div>
         </div>
       </div>
       
       <!-- ITEM 2: LIGAS & TORNEOS -->
       <div class="card" style="margin-bottom: 8px; padding: 12px 14px; background: #ffffff; border-left: 4px solid #d97706;">
-        <div style="margin-bottom: 8px; border-bottom: 1px solid var(--border-color); padding-bottom: 6px;">
-          <h3 style="font-size: 0.9rem; font-weight: 700; margin: 0 0 6px 0; color: #0f172a; display: flex; align-items: center; gap: 6px;">
+        <div class="accordion-header" onclick="toggleFinanzasAccordion('acc-torneos', this)">
+          <h3 style="font-size: 0.9rem; font-weight: 700; margin: 0; color: #0f172a; display: flex; align-items: center; gap: 6px;">
             <i class="fa-solid fa-trophy" style="color: #d97706;"></i> Ligas & Torneos
           </h3>
-          <div style="display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 0.75rem; flex-wrap: wrap;">
+          <i class="fa-solid fa-chevron-down accordion-arrow"></i>
+        </div>
+        
+        <div id="acc-torneos" class="accordion-body" style="display: none;">
+          <div style="display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 0.75rem; flex-wrap: wrap; margin-bottom: 10px;">
             <span onclick="abrirModalDesglose('torneosIngresos')" title="Hacé click para ver desglose Efectivo vs Transferencia" style="cursor:pointer; color: var(--success); font-weight: 700; background: rgba(22, 163, 74, 0.12); border: 1px solid rgba(22, 163, 74, 0.3); padding: 3px 6px; border-radius: 8px; display: inline-flex; align-items: center; font-size: 0.72rem;">Ingresos: <strong id="admin-torneos-total-ingresos" style="font-size:0.82rem; margin-left:3px;">$0</strong></span>
             <span onclick="abrirModalDesglose('torneosGastos')" title="Hacé click para ver desglose Efectivo vs Transferencia" style="cursor:pointer; color: var(--danger); font-weight: 700; background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.3); padding: 3px 6px; border-radius: 8px; display: inline-flex; align-items: center; font-size: 0.72rem;">Gastos: <strong id="admin-torneos-total-gastos" style="font-size:0.82rem; margin-left:3px;">$0</strong></span>
             <span style="color: var(--primary); font-weight: 700; background: rgba(29, 78, 216, 0.1); border: 1px solid rgba(29, 78, 216, 0.25); padding: 3px 6px; border-radius: 8px; display: inline-flex; align-items: center; font-size: 0.72rem;">Neto: <strong id="admin-torneos-total-neto" style="font-size:0.82rem; margin-left:3px;">$0</strong></span>
           </div>
-        </div>
-        
-        <!-- FILTROS TORNEOS -->
-        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-bottom: 6px;">
-          <div>
-            <label class="form-label" style="font-size: 0.6rem; margin-bottom: 2px;">Torneo / Liga</label>
-            <select id="admin-finanzas-filter-torneo" class="form-select" style="padding: 4px 8px; font-size: 0.75rem;" onchange="onTorneoFilterChange()">
-              <option value="Todos">-- Todos los Torneos --</option>
-            </select>
+          
+          <!-- FILTROS TORNEOS -->
+          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-bottom: 6px;">
+            <div>
+              <label class="form-label" style="font-size: 0.6rem; margin-bottom: 2px;">Torneo / Liga</label>
+              <select id="admin-finanzas-filter-torneo" class="form-select" style="padding: 4px 8px; font-size: 0.75rem;" onchange="onTorneoFilterChange()">
+                <option value="Todos">-- Todos los Torneos --</option>
+              </select>
+            </div>
+            <div>
+              <label class="form-label" style="font-size: 0.6rem; margin-bottom: 2px;">Jornada Fixture</label>
+              <select id="admin-finanzas-filter-fecha-jornada" class="form-select" style="padding: 4px 8px; font-size: 0.75rem;" onchange="seleccionarFechaJornada()">
+                <option value="Todas">-- Todas las Fechas --</option>
+              </select>
+            </div>
           </div>
-          <div>
-            <label class="form-label" style="font-size: 0.6rem; margin-bottom: 2px;">Jornada Fixture</label>
-            <select id="admin-finanzas-filter-fecha-jornada" class="form-select" style="padding: 4px 8px; font-size: 0.75rem;" onchange="seleccionarFechaJornada()">
-              <option value="Todas">-- Todas las Fechas --</option>
-            </select>
-          </div>
-        </div>
-        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px;">
-          <div>
-            <label class="form-label" style="font-size: 0.6rem; margin-bottom: 2px;">Desde Fecha</label>
-            <input type="date" id="admin-finanzas-filter-inicio" class="filter-input" style="padding: 4px 8px; font-size: 0.75rem; width:100%;" onchange="onRangoFechaChange()">
-          </div>
-          <div>
-            <label class="form-label" style="font-size: 0.6rem; margin-bottom: 2px;">Hasta Fecha</label>
-            <input type="date" id="admin-finanzas-filter-fin" class="filter-input" style="padding: 4px 8px; font-size: 0.75rem; width:100%;" onchange="onRangoFechaChange()">
+          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px;">
+            <div>
+              <label class="form-label" style="font-size: 0.6rem; margin-bottom: 2px;">Desde Fecha</label>
+              <input type="date" id="admin-finanzas-filter-inicio" class="filter-input" style="padding: 4px 8px; font-size: 0.75rem; width:100%;" onchange="onRangoFechaChange()">
+            </div>
+            <div>
+              <label class="form-label" style="font-size: 0.6rem; margin-bottom: 2px;">Hasta Fecha</label>
+              <input type="date" id="admin-finanzas-filter-fin" class="filter-input" style="padding: 4px 8px; font-size: 0.75rem; width:100%;" onchange="onRangoFechaChange()">
+            </div>
           </div>
         </div>
       </div>
 
       <!-- ITEM 3: SPONSORS -->
       <div class="card" style="margin-bottom: 8px; padding: 12px 14px; background: #ffffff; border-left: 4px solid #16a34a;">
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; border-bottom: 1px solid var(--border-color); padding-bottom: 6px;">
+        <div class="accordion-header" onclick="toggleFinanzasAccordion('acc-sponsors', this)">
           <h3 style="font-size: 0.9rem; font-weight: 700; margin: 0; color: #0f172a; display: flex; align-items: center; gap: 6px;">
             <i class="fa-solid fa-handshake" style="color: #16a34a;"></i> Sponsors & Patrocinios
           </h3>
-          <div style="font-size: 0.8rem;">
-            <span onclick="abrirModalDesglose('sponsorsTotal')" title="Hacé click para ver desglose Efectivo vs Transferencia" style="cursor:pointer; color: var(--success); font-weight: 700; background: rgba(22, 163, 74, 0.12); border: 1px solid rgba(22, 163, 74, 0.3); padding: 4px 10px; border-radius: 8px; display: inline-flex; align-items: center;">Total Sponsors: <strong id="admin-sponsors-total" style="font-size:0.95rem; margin-left:4px;">$0</strong></span>
-          </div>
+          <i class="fa-solid fa-chevron-down accordion-arrow"></i>
         </div>
         
-        <!-- FILTROS SPONSORS -->
-        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;">
-          <div>
-            <label class="form-label" style="font-size: 0.6rem; margin-bottom: 2px;">Destino / Torneo</label>
-            <select id="fin-sponsors-filter-cat" class="form-select" style="padding: 4px 8px; font-size: 0.75rem;" onchange="filtrarYCalcularFinanzas()">
-              <option value="Todos">-- Todos --</option>
-              <option value="General">General (Todo el Club)</option>
-            </select>
+        <div id="acc-sponsors" class="accordion-body" style="display: none;">
+          <div style="margin-bottom: 8px; font-size: 0.8rem; text-align: center;">
+            <span onclick="abrirModalDesglose('sponsorsTotal')" title="Hacé click para ver desglose Efectivo vs Transferencia" style="cursor:pointer; color: var(--success); font-weight: 700; background: rgba(22, 163, 74, 0.12); border: 1px solid rgba(22, 163, 74, 0.3); padding: 4px 10px; border-radius: 8px; display: inline-flex; align-items: center;">Total Sponsors: <strong id="admin-sponsors-total" style="font-size:0.95rem; margin-left:4px;">$0</strong></span>
           </div>
-          <div>
-            <label class="form-label" style="font-size: 0.6rem; margin-bottom: 2px;">Desde Fecha</label>
-            <input type="date" id="fin-sponsors-filter-inicio" class="filter-input" style="padding: 4px 8px; font-size: 0.75rem; width:100%;" onchange="filtrarYCalcularFinanzas()">
-          </div>
-          <div>
-            <label class="form-label" style="font-size: 0.6rem; margin-bottom: 2px;">Hasta Fecha</label>
-            <input type="date" id="fin-sponsors-filter-fin" class="filter-input" style="padding: 4px 8px; font-size: 0.75rem; width:100%;" onchange="filtrarYCalcularFinanzas()">
+          
+          <!-- FILTROS SPONSORS -->
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;">
+            <div>
+              <label class="form-label" style="font-size: 0.6rem; margin-bottom: 2px;">Destino / Torneo</label>
+              <select id="fin-sponsors-filter-cat" class="form-select" style="padding: 4px 8px; font-size: 0.75rem;" onchange="filtrarYCalcularFinanzas()">
+                <option value="Todos">-- Todos --</option>
+                <option value="General">General (Todo el Club)</option>
+              </select>
+            </div>
+            <div>
+              <label class="form-label" style="font-size: 0.6rem; margin-bottom: 2px;">Desde Fecha</label>
+              <input type="date" id="fin-sponsors-filter-inicio" class="filter-input" style="padding: 4px 8px; font-size: 0.75rem; width:100%;" onchange="filtrarYCalcularFinanzas()">
+            </div>
+            <div>
+              <label class="form-label" style="font-size: 0.6rem; margin-bottom: 2px;">Hasta Fecha</label>
+              <input type="date" id="fin-sponsors-filter-fin" class="filter-input" style="padding: 4px 8px; font-size: 0.75rem; width:100%;" onchange="filtrarYCalcularFinanzas()">
+            </div>
           </div>
         </div>
       </div>
 
       <!-- ITEM 4: GASTOS -->
       <div class="card" style="margin-bottom: 8px; padding: 12px 14px; background: #ffffff; border-left: 4px solid var(--danger);">
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; border-bottom: 1px solid var(--border-color); padding-bottom: 6px;">
+        <div class="accordion-header" onclick="toggleFinanzasAccordion('acc-gastos', this)">
           <h3 style="font-size: 0.9rem; font-weight: 700; margin: 0; color: #0f172a; display: flex; align-items: center; gap: 6px;">
             <i class="fa-solid fa-money-bill-transfer" style="color: var(--danger);"></i> Gastos
           </h3>
-          <div style="font-size: 0.8rem;">
-            <span onclick="abrirModalDesglose('gastosTotal')" title="Hacé click para ver desglose Efectivo vs Transferencia" style="cursor:pointer; color: var(--danger); font-weight: 700; background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.3); padding: 4px 10px; border-radius: 8px; display: inline-flex; align-items: center;">Total Gastos: <strong id="admin-gastos-total" style="font-size:0.95rem; margin-left:4px;">$0</strong></span>
-          </div>
+          <i class="fa-solid fa-chevron-down accordion-arrow"></i>
         </div>
         
-        <!-- FILTROS GASTOS -->
-        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;">
-          <div>
-            <label class="form-label" style="font-size: 0.6rem; margin-bottom: 2px;">Categoría / Destino</label>
-            <select id="fin-gastos-filter-cat" class="form-select" style="padding: 4px 8px; font-size: 0.75rem;" onchange="filtrarYCalcularFinanzas()">
-              <option value="Todos">-- Todas --</option>
-              <option value="General">General (Todo el Club)</option>
-            </select>
+        <div id="acc-gastos" class="accordion-body" style="display: none;">
+          <div style="margin-bottom: 8px; font-size: 0.8rem; text-align: center;">
+            <span onclick="abrirModalDesglose('gastosTotal')" title="Hacé click para ver desglose Efectivo vs Transferencia" style="cursor:pointer; color: var(--danger); font-weight: 700; background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.3); padding: 4px 10px; border-radius: 8px; display: inline-flex; align-items: center;">Total Gastos: <strong id="admin-gastos-total" style="font-size:0.95rem; margin-left:4px;">$0</strong></span>
           </div>
-          <div>
-            <label class="form-label" style="font-size: 0.6rem; margin-bottom: 2px;">Desde Fecha</label>
-            <input type="date" id="fin-gastos-filter-inicio" class="filter-input" style="padding: 4px 8px; font-size: 0.75rem; width:100%;" onchange="filtrarYCalcularFinanzas()">
-          </div>
-          <div>
-            <label class="form-label" style="font-size: 0.6rem; margin-bottom: 2px;">Hasta Fecha</label>
-            <input type="date" id="fin-gastos-filter-fin" class="filter-input" style="padding: 4px 8px; font-size: 0.75rem; width:100%;" onchange="filtrarYCalcularFinanzas()">
+          
+          <!-- FILTROS GASTOS -->
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;">
+            <div>
+              <label class="form-label" style="font-size: 0.6rem; margin-bottom: 2px;">Categoría / Destino</label>
+              <select id="fin-gastos-filter-cat" class="form-select" style="padding: 4px 8px; font-size: 0.75rem;" onchange="filtrarYCalcularFinanzas()">
+                <option value="Todos">-- Todas --</option>
+                <option value="General">General (Todo el Club)</option>
+              </select>
+            </div>
+            <div>
+              <label class="form-label" style="font-size: 0.6rem; margin-bottom: 2px;">Desde Fecha</label>
+              <input type="date" id="fin-gastos-filter-inicio" class="filter-input" style="padding: 4px 8px; font-size: 0.75rem; width:100%;" onchange="filtrarYCalcularFinanzas()">
+            </div>
+            <div>
+              <label class="form-label" style="font-size: 0.6rem; margin-bottom: 2px;">Hasta Fecha</label>
+              <input type="date" id="fin-gastos-filter-fin" class="filter-input" style="padding: 4px 8px; font-size: 0.75rem; width:100%;" onchange="filtrarYCalcularFinanzas()">
+            </div>
           </div>
         </div>
       </div>
 
       <!-- ITEM 5: TIENDA OFICIAL -->
       <div class="card" style="margin-bottom: 8px; padding: 12px 14px; background: #ffffff; border-left: 4px solid #8b5cf6;">
-        <div style="margin-bottom: 8px; border-bottom: 1px solid var(--border-color); padding-bottom: 6px;">
-          <h3 style="font-size: 0.9rem; font-weight: 700; margin: 0 0 6px 0; color: #0f172a; display: flex; align-items: center; gap: 6px;">
+        <div class="accordion-header" onclick="toggleFinanzasAccordion('acc-tienda', this)">
+          <h3 style="font-size: 0.9rem; font-weight: 700; margin: 0; color: #0f172a; display: flex; align-items: center; gap: 6px;">
             <i class="fa-solid fa-store" style="color: #8b5cf6;"></i> Tienda Oficial
           </h3>
-          <div style="display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 0.75rem; flex-wrap: wrap;">
+          <i class="fa-solid fa-chevron-down accordion-arrow"></i>
+        </div>
+        
+        <div id="acc-tienda" class="accordion-body" style="display: none;">
+          <div style="display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 0.75rem; flex-wrap: wrap; margin-bottom: 10px;">
             <span onclick="abrirModalDesglose('tiendaIngresos')" title="Hacé click para ver desglose Efectivo vs Transferencia" style="cursor:pointer; color: var(--success); font-weight: 700; background: rgba(22, 163, 74, 0.12); border: 1px solid rgba(22, 163, 74, 0.3); padding: 3px 6px; border-radius: 8px; display: inline-flex; align-items: center; font-size: 0.72rem;">Ingresos: <strong id="admin-tienda-total-ingresos" style="font-size:0.82rem; margin-left:3px;">$0</strong></span>
             <span onclick="abrirModalDesglose('tiendaGastos')" title="Hacé click para ver desglose Efectivo vs Transferencia" style="cursor:pointer; color: var(--danger); font-weight: 700; background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.3); padding: 3px 6px; border-radius: 8px; display: inline-flex; align-items: center; font-size: 0.72rem;">Gastos: <strong id="admin-tienda-total-gastos" style="font-size:0.82rem; margin-left:3px;">$0</strong></span>
             <span style="color: var(--primary); font-weight: 700; background: rgba(29, 78, 216, 0.1); border: 1px solid rgba(29, 78, 216, 0.25); padding: 3px 6px; border-radius: 8px; display: inline-flex; align-items: center; font-size: 0.72rem;">Neto: <strong id="admin-tienda-total-neto" style="font-size:0.82rem; margin-left:3px;">$0</strong></span>
           </div>
-        </div>
-        
-        <!-- FILTROS TIENDA (3 FILTROS ALINEADOS EN UNA SOLA FILA IGUAL A GASTOS) -->
-        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;">
-          <div>
-            <label class="form-label" style="font-size: 0.6rem; margin-bottom: 2px;">Categoría / Destino</label>
-            <select id="fin-tienda-filter-cat" class="form-select" style="padding: 4px 8px; font-size: 0.75rem;" onchange="filtrarYCalcularFinanzas()">
-              <option value="Todos">-- Todas --</option>
-              <option value="General">General (Todo el Club)</option>
-            </select>
-          </div>
-          <div>
-            <label class="form-label" style="font-size: 0.6rem; margin-bottom: 2px;">Desde Fecha</label>
-            <input type="date" id="fin-tienda-filter-inicio" class="filter-input" style="padding: 4px 8px; font-size: 0.75rem; width:100%;" onchange="filtrarYCalcularFinanzas()">
-          </div>
-          <div>
-            <label class="form-label" style="font-size: 0.6rem; margin-bottom: 2px;">Hasta Fecha</label>
-            <input type="date" id="fin-tienda-filter-fin" class="filter-input" style="padding: 4px 8px; font-size: 0.75rem; width:100%;" onchange="filtrarYCalcularFinanzas()">
+          
+          <!-- FILTROS TIENDA (3 FILTROS ALINEADOS EN UNA SOLA FILA IGUAL A GASTOS) -->
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;">
+            <div>
+              <label class="form-label" style="font-size: 0.6rem; margin-bottom: 2px;">Categoría / Destino</label>
+              <select id="fin-tienda-filter-cat" class="form-select" style="padding: 4px 8px; font-size: 0.75rem;" onchange="filtrarYCalcularFinanzas()">
+                <option value="Todos">-- Todas --</option>
+                <option value="General">General (Todo el Club)</option>
+              </select>
+            </div>
+            <div>
+              <label class="form-label" style="font-size: 0.6rem; margin-bottom: 2px;">Desde Fecha</label>
+              <input type="date" id="fin-tienda-filter-inicio" class="filter-input" style="padding: 4px 8px; font-size: 0.75rem; width:100%;" onchange="filtrarYCalcularFinanzas()">
+            </div>
+            <div>
+              <label class="form-label" style="font-size: 0.6rem; margin-bottom: 2px;">Hasta Fecha</label>
+              <input type="date" id="fin-tienda-filter-fin" class="filter-input" style="padding: 4px 8px; font-size: 0.75rem; width:100%;" onchange="filtrarYCalcularFinanzas()">
+            </div>
           </div>
         </div>
       </div>
 
       <!-- MOVIMIENTOS Y REGISTRO DE CAJA -->
-      <div class="section-title-area" style="margin-top: 4px; margin-bottom: 8px;">
-        <h3 class="section-title" style="font-size: 0.85rem;"><i class="fa-solid fa-receipt" style="margin-right:4px;"></i> Movimientos Registrados</h3>
-        <button class="btn-add" onclick="abrirModalMovimiento()" style="padding: 5px 12px; font-size: 0.75rem;"><i class="fa-solid fa-plus"></i> Cargar Movimiento</button>
-      </div>
-      <div id="admin-finanzas-list" class="list-container">
-        <!-- Lista de movimientos de caja -->
+      <div class="card" style="margin-bottom: 8px; padding: 12px 14px; background: #ffffff; border-left: 4px solid #64748b;">
+        <div class="accordion-header" onclick="toggleFinanzasAccordion('acc-movimientos', this)" style="border-bottom: 1px solid var(--border-color); padding-bottom: 6px; margin-bottom: 6px;">
+          <h3 style="font-size: 0.9rem; font-weight: 700; margin: 0; color: #0f172a; display: flex; align-items: center; gap: 6px;">
+            <i class="fa-solid fa-receipt" style="color: #64748b;"></i> Movimientos Registrados
+          </h3>
+          <i class="fa-solid fa-chevron-down accordion-arrow"></i>
+        </div>
+
+        <!-- Vista colapsada (Siempre visible cuando está colapsado, se oculta cuando se expande) -->
+        <div id="acc-movimientos-preview" style="margin-top: 8px;">
+          <div id="admin-finanzas-list-preview" class="list-container" style="box-shadow: none; border: none; padding: 0; min-height: unset; gap: 6px;">
+            <!-- Render dinámico de los últimos 2 -->
+          </div>
+        </div>
+
+        <!-- Vista expandida (Se revela al hacer click) -->
+        <div id="acc-movimientos" class="accordion-body" style="display: none;">
+          <!-- Filtros de Movimientos -->
+          <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px; margin-bottom: 12px;">
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 8px;">
+              <div>
+                <label class="form-label" style="font-size: 0.6rem; margin-bottom: 2px;">Tipo</label>
+                <select id="fin-movs-filter-tipo" class="form-select" style="padding: 4px 8px; font-size: 0.75rem;" onchange="dibujarMovimientosFinanzas()">
+                  <option value="Todos">Todos</option>
+                  <option value="Ingreso">Ingreso</option>
+                  <option value="Gasto">Gasto</option>
+                </select>
+              </div>
+              <div>
+                <label class="form-label" style="font-size: 0.6rem; margin-bottom: 2px;">Desde Fecha</label>
+                <input type="date" id="fin-movs-filter-inicio" class="filter-input" style="padding: 4px 8px; font-size: 0.75rem; width:100%;" onchange="dibujarMovimientosFinanzas()">
+              </div>
+              <div>
+                <label class="form-label" style="font-size: 0.6rem; margin-bottom: 2px;">Hasta Fecha</label>
+                <input type="date" id="fin-movs-filter-fin" class="filter-input" style="padding: 4px 8px; font-size: 0.75rem; width:100%;" onchange="dibujarMovimientosFinanzas()">
+              </div>
+            </div>
+            <div>
+              <label class="form-label" style="font-size: 0.6rem; margin-bottom: 2px;">Categoría / Destino</label>
+              <select id="fin-movs-filter-cat" class="form-select" style="padding: 4px 8px; font-size: 0.75rem;" onchange="dibujarMovimientosFinanzas()">
+                <!-- Se populan dinámicamente -->
+              </select>
+            </div>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">Listado Completo Filtrado</span>
+            <button class="btn-add" onclick="event.stopPropagation(); abrirModalMovimiento()" style="padding: 4px 10px; font-size: 0.7rem;"><i class="fa-solid fa-plus"></i> Cargar Movimiento</button>
+          </div>
+
+          <div id="admin-finanzas-list" class="list-container" style="box-shadow: none; border: none; padding: 0;">
+            <!-- Lista completa filtrada -->
+          </div>
+        </div>
       </div>
     </div>
 
@@ -5728,39 +5824,149 @@
       });
     }
 
-    // RENDER: HISTORIAL DE FINANZAS
-    function dibujarFinanzasAdmin(movimientos) {
-      const container = document.getElementById("admin-finanzas-list");
-      container.innerHTML = "";
+    function toggleFinanzasAccordion(bodyId, headerEl) {
+      const body = document.getElementById(bodyId);
+      if (!body) return;
       
-      if (movimientos.length === 0) {
-        container.innerHTML = `<div class="empty-state"><p>No hay movimientos cargados en caja.</p></div>`;
-        return;
+      const isCollapsed = body.style.display === "none";
+      
+      if (headerEl) {
+        if (isCollapsed) {
+          headerEl.classList.add("active");
+        } else {
+          headerEl.classList.remove("active");
+        }
       }
       
-      movimientos.forEach(m => {
-        const row = document.createElement("div");
-        row.className = "row-card";
+      if (bodyId === 'acc-movimientos') {
+        const preview = document.getElementById("acc-movimientos-preview");
+        if (preview) {
+          preview.style.display = isCollapsed ? "none" : "block";
+        }
+      }
+      
+      body.style.display = isCollapsed ? "block" : "none";
+    }
+
+    function dibujarMovimientosFinanzas() {
+      if (estadoApp.datosAdmin && estadoApp.datosAdmin.movimientos) {
+        dibujarFinanzasAdmin(estadoApp.datosAdmin.movimientos);
+      }
+    }
+
+    // RENDER: HISTORIAL DE FINANZAS
+    function dibujarFinanzasAdmin(movimientos) {
+      if (!movimientos) return;
+
+      // 1. Poblar filtro de categorías dinámico si está vacío
+      const selectCat = document.getElementById("fin-movs-filter-cat");
+      if (selectCat && selectCat.options.length <= 1) {
+        const categories = new Set();
+        movimientos.forEach(m => {
+          categories.add(m.Torneo_Name || "General");
+        });
         
-        row.innerHTML = `
-          <div class="row-info" style="flex:1;">
-            <h4 style="font-size:0.9rem; font-weight:700; color:#0f172a;">${m.Concept}</h4>
-            <p style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">${m.Torneo_Name || 'General'} | Fecha: ${m.Date}</p>
-          </div>
-          <div class="row-action" style="display:flex; align-items:center; gap:10px;">
-            <span class="badge ${m.Type === 'Ingreso' || m.Type === 'Sponsor' ? 'ingreso' : 'gasto'}" style="font-size:0.85rem;">
-              ${m.Type === 'Ingreso' || m.Type === 'Sponsor' ? '+' : '-'}$${parseFloat(m.Amount).toLocaleString('es-AR')}
-            </span>
-            <button onclick="abrirModalEditarMovimiento('${m.Movimiento_ID}')" title="Editar movimiento" style="background:rgba(217,119,6,0.12); border:1px solid #d97706; color:#b45309; width:32px; height:32px; border-radius:8px; cursor:pointer; display:flex; align-items:center; justify-content:center;">
-              <i class="fa-solid fa-pen-to-square" style="font-size:0.8rem;"></i>
-            </button>
-            <button onclick="confirmarEliminarMovimiento('${m.Movimiento_ID}')" title="Borrar movimiento" style="background:rgba(239,68,68,0.12); border:1px solid #ef4444; color:#ef4444; width:32px; height:32px; border-radius:8px; cursor:pointer; display:flex; align-items:center; justify-content:center;">
-              <i class="fa-solid fa-trash-can" style="font-size:0.8rem;"></i>
-            </button>
-          </div>
-        `;
-        container.appendChild(row);
-      });
+        selectCat.innerHTML = `<option value="Todos">-- Todas las Categorías --</option>`;
+        Array.from(categories).sort().forEach(cat => {
+          const opt = document.createElement("option");
+          opt.value = cat;
+          opt.innerText = cat;
+          selectCat.appendChild(opt);
+        });
+      }
+
+      // 2. Renderizar los últimos 2 movimientos en la vista colapsada (vista rápida)
+      const previewContainer = document.getElementById("admin-finanzas-list-preview");
+      if (previewContainer) {
+        previewContainer.innerHTML = "";
+        
+        // Ordenar copia por fecha desc
+        const sortedRaw = [...movimientos].sort((a, b) => new Date(b.Date) - new Date(a.Date));
+        const last2 = sortedRaw.slice(0, 2);
+        
+        if (last2.length === 0) {
+          previewContainer.innerHTML = `<div class="empty-state" style="padding: 10px;"><p style="font-size: 0.78rem;">No hay movimientos registrados.</p></div>`;
+        } else {
+          last2.forEach(m => {
+            const card = document.createElement("div");
+            card.className = "row-card";
+            card.style.padding = "8px 10px";
+            card.style.marginBottom = "4px";
+            card.innerHTML = `
+              <div class="row-info" style="flex:1;">
+                <h4 style="font-size:0.8rem; font-weight:700; color:#0f172a;">${m.Concept}</h4>
+                <p style="font-size:0.68rem; color:var(--text-muted); margin-top:1px;">${m.Torneo_Name || 'General'} | ${m.Date}</p>
+              </div>
+              <div class="row-action" style="display:flex; align-items:center; gap:8px;">
+                <span class="badge ${m.Type === 'Ingreso' || m.Type === 'Sponsor' ? 'ingreso' : 'gasto'}" style="font-size:0.75rem; padding: 2px 6px;">
+                  ${m.Type === 'Ingreso' || m.Type === 'Sponsor' ? '+' : '-'}$${parseFloat(m.Amount).toLocaleString('es-AR')}
+                </span>
+              </div>
+            `;
+            previewContainer.appendChild(card);
+          });
+        }
+      }
+
+      // 3. Renderizar listado completo con filtros en la vista expandida
+      const container = document.getElementById("admin-finanzas-list");
+      if (container) {
+        container.innerHTML = "";
+        
+        // Obtener filtros
+        const filterTipo = document.getElementById("fin-movs-filter-tipo") ? document.getElementById("fin-movs-filter-tipo").value : "Todos";
+        const filterInicio = document.getElementById("fin-movs-filter-inicio") ? document.getElementById("fin-movs-filter-inicio").value : "";
+        const filterFin = document.getElementById("fin-movs-filter-fin") ? document.getElementById("fin-movs-filter-fin").value : "";
+        const filterCat = document.getElementById("fin-movs-filter-cat") ? document.getElementById("fin-movs-filter-cat").value : "Todos";
+
+        // Filtrar
+        let filtered = movimientos.filter(m => {
+          if (filterTipo !== "Todos") {
+            const isIngreso = m.Type === "Ingreso" || m.Type === "Sponsor" || m.Type === "Tienda_Ingreso";
+            const isGasto = m.Type === "Gasto" || m.Type === "Tienda_Gasto";
+            if (filterTipo === "Ingreso" && !isIngreso) return false;
+            if (filterTipo === "Gasto" && !isGasto) return false;
+          }
+          if (filterInicio && m.Date < filterInicio) return false;
+          if (filterFin && m.Date > filterFin) return false;
+          if (filterCat !== "Todos") {
+            const catName = m.Torneo_Name || "General";
+            if (catName !== filterCat) return false;
+          }
+          return true;
+        });
+
+        // Ordenar por fecha desc
+        filtered.sort((a, b) => new Date(b.Date) - new Date(a.Date));
+
+        if (filtered.length === 0) {
+          container.innerHTML = `<div class="empty-state"><p>No se encontraron movimientos con los filtros aplicados.</p></div>`;
+        } else {
+          filtered.forEach(m => {
+            const row = document.createElement("div");
+            row.className = "row-card";
+            
+            row.innerHTML = `
+              <div class="row-info" style="flex:1;">
+                <h4 style="font-size:0.9rem; font-weight:700; color:#0f172a;">${m.Concept}</h4>
+                <p style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">${m.Torneo_Name || 'General'} | Fecha: ${m.Date}</p>
+              </div>
+              <div class="row-action" style="display:flex; align-items:center; gap:10px;">
+                <span class="badge ${m.Type === 'Ingreso' || m.Type === 'Sponsor' ? 'ingreso' : 'gasto'}" style="font-size:0.85rem;">
+                  ${m.Type === 'Ingreso' || m.Type === 'Sponsor' ? '+' : '-'}$${parseFloat(m.Amount).toLocaleString('es-AR')}
+                </span>
+                <button onclick="abrirModalEditarMovimiento('${m.Movimiento_ID}')" title="Editar movimiento" style="background:rgba(217,119,6,0.12); border:1px solid #d97706; color:#b45309; width:32px; height:32px; border-radius:8px; cursor:pointer; display:flex; align-items:center; justify-content:center;">
+                  <i class="fa-solid fa-pen-to-square" style="font-size:0.8rem;"></i>
+                </button>
+                <button onclick="confirmarEliminarMovimiento('${m.Movimiento_ID}')" title="Borrar movimiento" style="background:rgba(239,68,68,0.12); border:1px solid #ef4444; color:#ef4444; width:32px; height:32px; border-radius:8px; cursor:pointer; display:flex; align-items:center; justify-content:center;">
+                  <i class="fa-solid fa-trash-can" style="font-size:0.8rem;"></i>
+                </button>
+              </div>
+            `;
+            container.appendChild(row);
+          });
+        }
+      }
     }
 
     // MODAL: CARGAR Y EDITAR MOVIMIENTO
