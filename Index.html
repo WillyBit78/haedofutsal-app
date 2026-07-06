@@ -2997,6 +2997,11 @@
             <strong id="lbl-desglose-transf" style="font-size:1.1rem; font-weight:800; color:#818cf8;">$0</strong>
           </div>
         </div>
+        
+        <!-- Desglose por Categoría (Cuotas, Ligas, Sponsors, etc.) -->
+        <div id="container-desglose-categorias" style="margin-top: 14px; padding: 12px 14px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; display: none; flex-direction: column; gap: 8px;">
+          <!-- Se completa dinámicamente -->
+        </div>
       </div>
       <div class="modal-footer" style="padding-top:10px;">
         <button class="modal-btn cancel" onclick="cerrarModalDesglose()">Entendido</button>
@@ -6819,6 +6824,32 @@
         listHTML += `</div>`;
         container.innerHTML = listHTML;
       }
+
+      // Renderizar desglose por categoría de origen/destino
+      const catContainer = document.getElementById("container-desglose-categorias");
+      if (catContainer) {
+        catContainer.innerHTML = "";
+        const cats = d.categorias || {};
+        const catEntries = Object.entries(cats).sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]));
+        
+        if (catEntries.length === 0) {
+          catContainer.style.display = "none";
+        } else {
+          catContainer.style.display = "flex";
+          let listHTML = `<div style="font-size:0.68rem; font-weight:800; color:#94a3b8; text-transform:uppercase; margin-bottom:6px; letter-spacing:0.5px;">Desglose por Origen / Destino:</div>`;
+          listHTML += `<div style="display:flex; flex-direction:column; gap:6px;">`;
+          catEntries.forEach(([name, amount]) => {
+            listHTML += `
+              <div style="display:flex; justify-content:space-between; align-items:center; padding:4px 0; border-bottom:1px solid rgba(255,255,255,0.08);">
+                <span style="font-size:0.8rem; color:#cbd5e1; font-weight:500;">${name}</span>
+                <strong style="font-size:0.85rem; color:#ffffff;">$${Math.abs(amount).toLocaleString('es-AR')}</strong>
+              </div>
+            `;
+          });
+          listHTML += `</div>`;
+          catContainer.innerHTML = listHTML;
+        }
+      }
       
       document.getElementById("desglose-modal").style.display = "flex";
     }
@@ -6876,6 +6907,18 @@
       
       let balIngCuotasEf = 0, balIngCuotasTr = 0;
       const balIngCoaches = {}, balGastosCoaches = {};
+      const balIngCategorias = {
+        "Cuotas": 0,
+        "Ligas & Torneos": 0,
+        "Sponsors": 0,
+        "Tienda Oficial": 0,
+        "Otros": 0
+      };
+      const balGastosCategorias = {
+        "Ligas & Torneos": 0,
+        "Tienda Oficial": 0,
+        "Gastos Generales / Club": 0
+      };
 
       pagos.forEach(p => {
         if (p.Month >= balMesInicio && p.Month <= balMesFin && p.Status === "Pagado") {
@@ -6887,6 +6930,7 @@
           } else {
             balIngCuotasTr += amt;
           }
+          balIngCategorias["Cuotas"] += amt;
         }
       });
       
@@ -6900,19 +6944,43 @@
             const amt = parseFloat(m.Amount) || 0;
             const isEf = !m.Payment_Method || m.Payment_Method === "Efectivo";
             const cName = m.User || m.Collected_By || "Caja Club";
-            if (m.Type === "Ingreso" || m.Type === "Sponsor" || (m.Concept && m.Concept.toLowerCase().includes("sponsor"))) {
+            
+            const isSponsor = m.Type === "Sponsor" || (m.Concept && m.Concept.toLowerCase().includes("sponsor"));
+            const isTiendaIng = m.Type === "Tienda_Ingreso" || (m.Category && m.Category.toLowerCase().includes("tienda"));
+            const isTiendaGas = m.Type === "Tienda_Gasto" || (m.Category && m.Category.toLowerCase().includes("tienda"));
+            const isTorneo = m.Torneo_ID && m.Torneo_ID !== "General" && m.Torneo_ID !== "Tienda";
+            
+            if (m.Type === "Ingreso" || isSponsor || isTiendaIng) {
               if (isEf) {
                 balIngOtrosEf += amt;
                 balIngCoaches[cName] = (balIngCoaches[cName] || 0) + amt;
               } else {
                 balIngOtrosTr += amt;
               }
-            } else if (m.Type === "Gasto") {
+              
+              if (isSponsor) {
+                balIngCategorias["Sponsors"] += amt;
+              } else if (isTiendaIng) {
+                balIngCategorias["Tienda Oficial"] += amt;
+              } else if (isTorneo) {
+                balIngCategorias["Ligas & Torneos"] += amt;
+              } else {
+                balIngCategorias["Otros"] += amt;
+              }
+            } else if (m.Type === "Gasto" || isTiendaGas) {
               if (isEf) {
                 balGastosEf += amt;
                 balGastosCoaches[cName] = (balGastosCoaches[cName] || 0) + amt;
               } else {
                 balGastosTr += amt;
+              }
+              
+              if (isTiendaGas) {
+                balGastosCategorias["Tienda Oficial"] += amt;
+              } else if (isTorneo) {
+                balGastosCategorias["Ligas & Torneos"] += amt;
+              } else {
+                balGastosCategorias["Gastos Generales / Club"] += amt;
               }
             }
           }
@@ -6929,9 +6997,18 @@
         balNetoCoaches[k] = (balIngCoaches[k] || 0) - (balGastosCoaches[k] || 0);
       });
 
-      estadoApp.desgloses.balIngresos = { titulo: "Ingresos Totales (Balance)", total: balIngresosConsolidados, efectivo: balIngCuotasEf + balIngOtrosEf, transferencia: balIngCuotasTr + balIngOtrosTr, coaches: balIngCoaches };
-      estadoApp.desgloses.balGastos = { titulo: "Gastos Totales (Balance)", total: balGastosConsolidados, efectivo: balGastosEf, transferencia: balGastosTr, coaches: balGastosCoaches };
-      estadoApp.desgloses.balNeto = { titulo: "Neto Consolidado (Balance)", total: balNetoConsolidado, efectivo: (balIngCuotasEf + balIngOtrosEf) - balGastosEf, transferencia: (balIngCuotasTr + balIngOtrosTr) - balGastosTr, coaches: balNetoCoaches };
+      const balNetoCategorias = {
+        "Cuotas": balIngCategorias["Cuotas"],
+        "Ligas & Torneos": balIngCategorias["Ligas & Torneos"] - balGastosCategorias["Ligas & Torneos"],
+        "Sponsors": balIngCategorias["Sponsors"],
+        "Tienda Oficial": balIngCategorias["Tienda Oficial"] - balGastosCategorias["Tienda Oficial"],
+        "Gastos Generales / Club": -balGastosCategorias["Gastos Generales / Club"],
+        "Otros": balIngCategorias["Otros"]
+      };
+
+      estadoApp.desgloses.balIngresos = { titulo: "Ingresos Totales (Balance)", total: balIngresosConsolidados, efectivo: balIngCuotasEf + balIngOtrosEf, transferencia: balIngCuotasTr + balIngOtrosTr, coaches: balIngCoaches, categorias: balIngCategorias };
+      estadoApp.desgloses.balGastos = { titulo: "Gastos Totales (Balance)", total: balGastosConsolidados, efectivo: balGastosEf, transferencia: balGastosTr, coaches: balGastosCoaches, categorias: balGastosCategorias };
+      estadoApp.desgloses.balNeto = { titulo: "Neto Consolidado (Balance)", total: balNetoConsolidado, efectivo: (balIngCuotasEf + balIngOtrosEf) - balGastosEf, transferencia: (balIngCuotasTr + balIngOtrosTr) - balGastosTr, coaches: balNetoCoaches, categorias: balNetoCategorias };
 
       const elBalIng = document.getElementById("admin-balance-total-ingresos");
       const elBalGas = document.getElementById("admin-balance-total-gastos");
