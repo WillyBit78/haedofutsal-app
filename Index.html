@@ -4773,12 +4773,20 @@
             avatarBg = "rgba(244,63,94,0.18)";
           }
 
+          const styleUser = obtenerEstiloUsernameCategoria(s.Category);
+          const usernameBadge = s.Username
+            ? `<span style="font-size:0.65rem; font-weight:800; color:${styleUser.color}; background:${styleUser.bg}; padding:2px 6px; border-radius:6px; margin-left:6px; text-transform:uppercase; display:inline-block; vertical-align:middle; white-space:nowrap; flex-shrink:0;">${s.Username.toUpperCase()}</span>`
+            : '';
+
           html += `
             <div class="dash-socio-row" onclick="verFichaSocio('${s.Email}')" style="display:flex; align-items:center; justify-content:space-between; padding:8px 12px; cursor:pointer;">
               <div style="display:flex; align-items:center; gap:10px; min-width:0; flex:1;">
                 <img src="${s.Photo || ('https://i.pravatar.cc/150?u=' + s.Email.toLowerCase().replace(/[^a-zA-Z0-9]/g, ''))}" onclick="event.stopPropagation(); ampliarFotoSocio(this.src, '${formatearApellidoNombre(s.Name)}')" style="width:38px; height:38px; border-radius:50%; object-fit:cover; border:2px solid ${iconColor}; flex-shrink:0; cursor:pointer;" title="Tocá para ampliar foto" alt="Foto">
                 <div class="dash-socio-info" style="min-width:0; flex:1;">
-                  <span class="dash-socio-name" style="text-overflow:ellipsis; overflow:hidden; white-space:nowrap; display:block;">${formatearApellidoNombre(s.Name)}</span>
+                  <span class="dash-socio-name" style="text-overflow:ellipsis; overflow:hidden; white-space:nowrap; display:inline-flex; align-items:center; width:100%; gap:4px;">
+                    <span style="text-overflow:ellipsis; overflow:hidden; white-space:nowrap;">${formatearApellidoNombre(s.Name)}</span>
+                    ${usernameBadge}
+                  </span>
                 </div>
               </div>
               <div style="display:flex; align-items:center; gap:8px; flex-shrink:0;">
@@ -5100,13 +5108,21 @@
         row.style.cursor = "pointer";
         row.onclick = () => verFichaSocio(socio.Email);
 
+        const styleUser = obtenerEstiloUsernameCategoria(socio.Category);
+        const usernameBadge = socio.Username
+          ? `<span style="font-size:0.65rem; font-weight:800; color:${styleUser.color}; background:${styleUser.bg}; padding:2px 6px; border-radius:6px; margin-left:6px; text-transform:uppercase; display:inline-block; vertical-align:middle; white-space:nowrap; flex-shrink:0;">${socio.Username.toUpperCase()}</span>`
+          : '';
+
         row.innerHTML = `
           <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:0;">
             <img src="${socio.Photo || ('https://i.pravatar.cc/150?u=' + socio.Email.toLowerCase().replace(/[^a-zA-Z0-9]/g, ''))}" onclick="event.stopPropagation(); ampliarFotoSocio(this.src, '${formatearApellidoNombre(socio.Name)}')" style="width:40px; height:40px; border-radius:50%; object-fit:cover; border:2px solid ${avatarColor}; flex-shrink:0; cursor:pointer;" title="Tocá para ampliar foto" alt="Foto">
-            <div style="display:flex; flex-direction:column; min-width:0;">
+            <div style="display:flex; flex-direction:column; min-width:0; flex:1;">
               <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
-                <span style="font-size:0.65rem; font-weight:700; color:var(--primary); background:rgba(37,99,235,0.1); padding:1px 6px; border-radius:4px;">${socioId}</span>
-                <span style="font-size:0.85rem; font-weight:700; color:#0f172a; text-overflow:ellipsis; overflow:hidden; white-space:nowrap;">${formatearApellidoNombre(socio.Name)}</span>
+                <span style="font-size:0.65rem; font-weight:700; color:var(--primary); background:rgba(37,99,235,0.1); padding:1px 6px; border-radius:4px; flex-shrink:0;">${socioId}</span>
+                <span style="font-size:0.85rem; font-weight:700; color:#0f172a; text-overflow:ellipsis; overflow:hidden; white-space:nowrap; display:inline-flex; align-items:center; gap:4px; max-width:100%;">
+                  <span style="text-overflow:ellipsis; overflow:hidden; white-space:nowrap;">${formatearApellidoNombre(socio.Name)}</span>
+                  ${usernameBadge}
+                </span>
               </div>
               <span style="font-size:0.68rem; color:var(--text-muted); margin-top:2px; text-overflow:ellipsis; overflow:hidden; white-space:nowrap;">${catLabel}</span>
             </div>
@@ -5137,6 +5153,26 @@
         return subCat;
       }
       return "EDEFI-Mayores";
+    }
+
+    function obtenerEstiloUsernameCategoria(category) {
+      const parentCat = obtenerCategoriaPadre(category);
+      switch (parentCat) {
+        case "EDEFI-Mayores":
+          return { color: "#1e40af", bg: "rgba(30,64,175,0.12)" };
+        case "EDEFI-Baby":
+          return { color: "#b45309", bg: "rgba(180,83,9,0.12)" };
+        case "BAFI-Femenino":
+          return { color: "#be185d", bg: "rgba(190,24,93,0.12)" };
+        case "BAFI-Masculino":
+          return { color: "#0f766e", bg: "rgba(15,118,110,0.12)" };
+        case "FUTSALA-Masculino":
+          return { color: "#6d28d9", bg: "rgba(109,40,217,0.12)" };
+        case "FUTSALA-Promocionales":
+          return { color: "#047857", bg: "rgba(4,120,87,0.12)" };
+        default:
+          return { color: "#475569", bg: "rgba(71,85,105,0.12)" };
+      }
     }
 
     function actualizarOpcionesCategorias(selectLigaId, selectCatId, onCompleteCallback) {
