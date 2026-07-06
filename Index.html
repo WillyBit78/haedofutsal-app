@@ -5117,13 +5117,10 @@
           <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:0;">
             <img src="${socio.Photo || ('https://i.pravatar.cc/150?u=' + socio.Email.toLowerCase().replace(/[^a-zA-Z0-9]/g, ''))}" onclick="event.stopPropagation(); ampliarFotoSocio(this.src, '${formatearApellidoNombre(socio.Name)}')" style="width:40px; height:40px; border-radius:50%; object-fit:cover; border:2px solid ${avatarColor}; flex-shrink:0; cursor:pointer;" title="Tocá para ampliar foto" alt="Foto">
             <div style="display:flex; flex-direction:column; min-width:0; flex:1;">
-              <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
-                <span style="font-size:0.65rem; font-weight:700; color:var(--primary); background:rgba(37,99,235,0.1); padding:1px 6px; border-radius:4px; flex-shrink:0;">${socioId}</span>
-                <span style="font-size:0.85rem; font-weight:700; color:#0f172a; text-overflow:ellipsis; overflow:hidden; white-space:nowrap; display:inline-flex; align-items:center; gap:4px; max-width:100%;">
-                  <span style="text-overflow:ellipsis; overflow:hidden; white-space:nowrap;">${formatearApellidoNombre(socio.Name)}</span>
-                  ${usernameBadge}
-                </span>
-              </div>
+              <span style="font-size:0.85rem; font-weight:700; color:#0f172a; text-overflow:ellipsis; overflow:hidden; white-space:nowrap; display:inline-flex; align-items:center; gap:4px; max-width:100%;">
+                <span style="text-overflow:ellipsis; overflow:hidden; white-space:nowrap;">${formatearApellidoNombre(socio.Name)}</span>
+                ${usernameBadge}
+              </span>
               <span style="font-size:0.68rem; color:var(--text-muted); margin-top:2px; text-overflow:ellipsis; overflow:hidden; white-space:nowrap;">${catLabel}</span>
             </div>
           </div>
@@ -5797,20 +5794,6 @@
         </div>
 
         ${contactHTML}
-
-        <div style="background: rgba(22,163,74,0.06); border:1px solid rgba(22,163,74,0.25); padding:12px; border-radius:12px;">
-          <h4 style="margin:0 0 10px 0; font-size:0.78rem; font-weight:800; color:var(--success); text-transform:uppercase; letter-spacing:0.5px; display:flex; align-items:center; gap:6px;">
-            <i class="fa-solid fa-file-medical" style="color:var(--success);"></i> Ficha Médica & Salud
-          </h4>
-          <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:12px; font-size:0.8rem;">
-            <div><span style="color:var(--text-muted); font-size:0.7rem; display:block;">Grupo Sanguíneo</span> <strong style="color:#0f172a;"><i class="fa-solid fa-droplet" style="color:var(--danger);"></i> ${p.BloodType || 'O+'}</strong></div>
-            <div><span style="color:var(--text-muted); font-size:0.7rem; display:block;">Obra Social / Prepaga</span> <strong style="color:#0f172a;">${p.ObraSocial || 'Particular'}</strong></div>
-            <div style="grid-column: span 2; background:#ffffff; padding:8px 10px; border-radius:8px; border:1px solid rgba(22,163,74,0.3); margin-top:2px;">
-              <span style="color:var(--text-muted); font-size:0.68rem; display:block; font-weight:700; text-transform:uppercase;">Estado de Aptitud Física:</span>
-              <strong style="color:var(--success); font-size:0.82rem;"><i class="fa-solid fa-shield-heart"></i> ${p.MedicalFit || 'Apto Físico Vigente'}</strong>
-            </div>
-          </div>
-        </div>
 
         <div style="background: #f8fafc; border:1px solid var(--border-color); padding:10px 12px; border-radius:10px; font-size:0.78rem;">
           <span style="color:var(--text-muted); font-size:0.68rem; font-weight:700; text-transform:uppercase; display:block; margin-bottom:2px;">Observaciones Generales:</span>
