@@ -288,6 +288,14 @@
       padding-left: 48px !important;
     }
 
+    @media (min-width: 600px) {
+      .payment-methods-grid {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 12px !important;
+      }
+    }
+
     .form-input:focus {
       outline: none;
       border-color: var(--primary);
@@ -3184,12 +3192,12 @@
         <!-- SELECCIONADOR DE MEDIO DE PAGO -->
         <div style="margin-bottom: 1.2rem;">
           <label class="form-label" style="font-size:0.75rem; font-weight:700; color:var(--text-muted); margin-bottom:6px; display:block;">Seleccioná el medio de pago:</label>
-          <div style="display: flex; flex-direction: column; gap: 8px;">
+          <div class="payment-methods-grid" style="display: flex; flex-direction: column; gap: 8px;">
             <!-- Opción 1: Transferencia Bancaria -->
             <label style="display:flex; align-items:center; gap:10px; border: 1px solid var(--border-color); padding: 12px; border-radius: 10px; cursor: pointer; background: var(--bg-card); transition: all 0.2s;" onclick="mostrarDetalleMetodoPago('banco')">
               <input type="radio" name="modal-transfer-method" value="Banco Oficial" checked style="accent-color: var(--primary);">
               <div style="display:flex; flex-direction:column; flex:1;">
-                <span style="font-weight:700; font-size:0.9rem; color:var(--text-primary);">Banco Oficial (CBU / Alias)</span>
+                <span style="font-weight:700; font-size:0.9rem; color:var(--text-primary);">Transferencia (CVU / Alias)</span>
                 <span style="font-size:0.75rem; color:var(--text-muted);">$0 recargos, transferencia directa</span>
               </div>
               <i class="fa-solid fa-building-columns text-primary" style="font-size: 1.2rem;"></i>
@@ -3234,14 +3242,13 @@
           <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0 0 10px 0;">Transferí el monto exacto y luego cargá el comprobante abajo.</p>
           <div style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 10px; border-radius: 8px; font-size: 0.82rem;">
             <div>Titular: <strong style="color: var(--text-primary);">Haedo Futsal Club</strong></div>
-            <div>Banco: <strong style="color: var(--text-primary);">Banco Credicoop</strong></div>
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px;">
-              <span>Alias: <code id="alias-banco" style="color:#10b981; font-weight:bold;">haedo.futsal.cred</code></span>
-              <button class="btn-secondary" style="padding:2px 8px; font-size:0.7rem; border-radius:4px;" onclick="copiarTexto('haedo.futsal.cred', 'Alias Banco')"><i class="fa-regular fa-copy"></i> Copiar</button>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px; flex-wrap:wrap; gap:6px;">
+              <span>Alias: <code id="alias-banco" style="color:#10b981; font-weight:bold;">willy.78.mp</code></span>
+              <button class="btn-secondary" style="padding:2px 8px; font-size:0.7rem; border-radius:4px;" onclick="copiarTexto('willy.78.mp', 'Alias')"><i class="fa-regular fa-copy"></i> Copiar</button>
             </div>
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px;">
-              <span>CBU: <code id="cbu-banco" style="color:var(--text-primary); font-family:monospace;">1910001234567890123456</code></span>
-              <button class="btn-secondary" style="padding:2px 8px; font-size:0.7rem; border-radius:4px;" onclick="copiarTexto('1910001234567890123456', 'CBU Banco')"><i class="fa-regular fa-copy"></i> Copiar</button>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px; flex-wrap:wrap; gap:6px;">
+              <span>CVU: <code id="cbu-banco" style="color:var(--text-primary); font-family:monospace; word-break:break-all;">0000003100098098995218</code></span>
+              <button class="btn-secondary" style="padding:2px 8px; font-size:0.7rem; border-radius:4px;" onclick="copiarTexto('0000003100098098995218', 'CVU')"><i class="fa-regular fa-copy"></i> Copiar</button>
             </div>
           </div>
         </div>
@@ -3257,13 +3264,13 @@
 
           <div style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 10px; border-radius: 8px; font-size: 0.82rem;">
             <div>Titular: <strong style="color: var(--text-primary);">Haedo Futsal Club</strong></div>
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px; flex-wrap:wrap; gap:6px;">
               <span>Alias: <code id="alias-mp" style="color:#009ee3; font-weight:bold;">willy.78.mp</code></span>
-              <button class="btn-secondary" style="padding:2px 8px; font-size:0.7rem; border-radius:4px;" onclick="copiarTexto('willy.78.mp', 'Alias Mercado Pago')"><i class="fa-regular fa-copy"></i> Copiar</button>
+              <button class="btn-secondary" style="padding:2px 8px; font-size:0.7rem; border-radius:4px;" onclick="copiarTexto('willy.78.mp', 'Alias')"><i class="fa-regular fa-copy"></i> Copiar</button>
             </div>
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px;">
-              <span>CVU: <code id="cvu-mp" style="color:var(--text-primary); font-family:monospace;">0000003100012345678901</code></span>
-              <button class="btn-secondary" style="padding:2px 8px; font-size:0.7rem; border-radius:4px;" onclick="copiarTexto('0000003100012345678901', 'CVU Mercado Pago')"><i class="fa-regular fa-copy"></i> Copiar</button>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px; flex-wrap:wrap; gap:6px;">
+              <span>CVU: <code id="cvu-mp" style="color:var(--text-primary); font-family:monospace; word-break:break-all;">0000003100098098995218</code></span>
+              <button class="btn-secondary" style="padding:2px 8px; font-size:0.7rem; border-radius:4px;" onclick="copiarTexto('0000003100098098995218', 'CVU')"><i class="fa-regular fa-copy"></i> Copiar</button>
             </div>
           </div>
         </div>
@@ -3274,13 +3281,13 @@
           <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0 0 10px 0;">Transferí el monto exacto desde Cuenta DNI, MODO, Ualá, etc.</p>
           <div style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 10px; border-radius: 8px; font-size: 0.82rem;">
             <div>Titular: <strong style="color: var(--text-primary);">Haedo Futsal Club</strong></div>
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px;">
-              <span>Alias: <code id="alias-billeteras" style="color:#f59e0b; font-weight:bold;">haedo.pagos.dni</code></span>
-              <button class="btn-secondary" style="padding:2px 8px; font-size:0.7rem; border-radius:4px;" onclick="copiarTexto('haedo.pagos.dni', 'Alias Billeteras')"><i class="fa-regular fa-copy"></i> Copiar</button>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px; flex-wrap:wrap; gap:6px;">
+              <span>Alias: <code id="alias-billeteras" style="color:#f59e0b; font-weight:bold;">willy.78.mp</code></span>
+              <button class="btn-secondary" style="padding:2px 8px; font-size:0.7rem; border-radius:4px;" onclick="copiarTexto('willy.78.mp', 'Alias')"><i class="fa-regular fa-copy"></i> Copiar</button>
             </div>
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px;">
-              <span>CVU: <code id="cvu-billeteras" style="color:var(--text-primary); font-family:monospace;">0000003100098765432109</code></span>
-              <button class="btn-secondary" style="padding:2px 8px; font-size:0.7rem; border-radius:4px;" onclick="copiarTexto('0000003100098765432109', 'CVU Billeteras')"><i class="fa-regular fa-copy"></i> Copiar</button>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px; flex-wrap:wrap; gap:6px;">
+              <span>CVU: <code id="cvu-billeteras" style="color:var(--text-primary); font-family:monospace; word-break:break-all;">0000003100098098995218</code></span>
+              <button class="btn-secondary" style="padding:2px 8px; font-size:0.7rem; border-radius:4px;" onclick="copiarTexto('0000003100098098995218', 'CVU')"><i class="fa-regular fa-copy"></i> Copiar</button>
             </div>
           </div>
         </div>
