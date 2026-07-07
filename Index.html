@@ -2798,11 +2798,12 @@
           Ir a Iniciar Sesión
         </button>
       </div>
-
       <div class="modal-footer" style="padding-top:12px; border-top:1px solid var(--border-color);">
         <button class="modal-btn cancel" onclick="cerrarModalAltaSocio()">Cancelar</button>
         <button class="modal-btn confirm" onclick="confirmarAltaSocio()" style="background:var(--primary); font-weight:700;"><i class="fa-solid fa-check"></i> Registrar Socio</button>
       </div>
+    </div>
+  </div>
 
   <!-- MODAL: FICHA PERSONAL COMPLETA DEL SOCIO -->
   <div id="ficha-personal-modal" class="modal-overlay" style="z-index: 11000;">
@@ -4081,7 +4082,7 @@
             <span class="badge" style="background-color:#fef9c3; color:#ca8a04; font-weight:700; padding:4px 8px; border-radius:6px; font-size:0.7rem; text-transform:uppercase; margin-bottom:2px;">Pendiente</span>
           `;
           actionHTML = `
-            <button class="btn-sm-pay" onclick="alert('DEBUG: Click detectado para ${p.Payment_ID}'); abrirModalMetodoPago('${p.Payment_ID}', '${p.Month}', '${p.Amount}')" style="margin-left:8px; display:flex; align-items:center; gap:4px; font-size:0.72rem; padding:6px 10px; border-radius:6px;">
+            <button class="btn-sm-pay" onclick="abrirModalMetodoPago('${p.Payment_ID}', '${p.Month}', '${p.Amount}')" style="margin-left:8px; display:flex; align-items:center; gap:4px; font-size:0.72rem; padding:6px 10px; border-radius:6px;">
               <i class="fa-solid fa-wallet"></i> Pagar
             </button>
           `;
@@ -4133,7 +4134,6 @@
         const modal = document.getElementById("modal-metodo-pago");
         if (modal) {
           modal.style.display = "flex";
-          alert("DEBUG: Modal display set to: " + modal.style.display);
         } else {
           console.error("modal-metodo-pago not found!");
           alert("Error: El modal de pago no se encuentra disponible.");
