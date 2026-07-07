@@ -1231,21 +1231,15 @@ function conciliarPagoTransferenciaAutomatico(paymentId, email, amount, month, p
 
     let cleanTxId = "";
     
-    // Caso de pruebas/mock para facilitar verificación sin transacción real en MP
-    const isTestUser = socioEmail && (socioEmail.toLowerCase().includes("jprueba") || socioEmail.toLowerCase().includes("prueba") || socioEmail.toLowerCase().includes("deportista"));
-    
-    if (isTestUser && ocrAmount !== null && ocrAmount !== undefined) {
+    if (ocrAmount !== null && ocrAmount !== undefined) {
       const parsedOcrAmt = parseFloat(ocrAmount);
-      if (!isNaN(parsedOcrAmt) && Math.abs(parsedOcrAmt - targetAmount) > 0.01) {
-        return { success: false, message: `El importe detectado en el comprobante ($${parsedOcrAmt}) no coincide con el valor de la cuota ($${targetAmount}).` };
+      if (!isNaN(parsedOcrAmt) && Math.abs(parsedOcrAmt - targetAmount) > 10.0) { // Tolerancia de 10 pesos
+        return { success: false, message: `El importe detectado en el comprobante ($${parsedOcrAmt.toLocaleString('es-AR')}) no coincide con el valor de la cuota ($${targetAmount.toLocaleString('es-AR')}).` };
       }
     }
     
     if (transactionId && transactionId.trim().length > 0) {
       cleanTxId = transactionId.trim();
-    } else if (isTestUser) {
-      const fileHash = getStringHash(base64Receipt || "");
-      cleanTxId = "MOCK-TX-" + fileHash;
     }
 
     const isCoelsaId = cleanTxId && (cleanTxId.length === 22 || /[a-zA-Z]/.test(cleanTxId));
@@ -1260,46 +1254,28 @@ function conciliarPagoTransferenciaAutomatico(paymentId, email, amount, month, p
         }
       }
       
-      if (isTestUser) {
-        matchedPayment = {
-          id: cleanTxId,
-          status: "approved",
-          transaction_amount: targetAmount,
-          payer: { email: socioEmail },
-          operation_type: "Transferencia MP"
-        };
-      } else if (cleanTxId.toUpperCase().includes("TEST") || cleanTxId.toUpperCase().includes("PRUEBA") || cleanTxId === "123456789") {
-        matchedPayment = {
-          id: cleanTxId,
-          status: "approved",
-          transaction_amount: targetAmount,
-          payer: { email: socioEmail },
-          operation_type: "Transferencia MP"
-        };
-      } else {
-        const url = `https://api.mercadopago.com/v1/payments/${cleanTxId}`;
-        const options = {
-          method: "get",
-          headers: { "Authorization": "Bearer " + token },
-          muteHttpExceptions: true
-        };
-        
-        const response = UrlFetchApp.fetch(url, options);
-        if (response.getResponseCode() === 200) {
-          const paymentInfo = JSON.parse(response.getContentText());
-          if (paymentInfo.status === 'approved') {
-            const mpAmount = parseFloat(paymentInfo.transaction_amount || 0);
-            if (Math.abs(mpAmount - targetAmount) < 10.0) { // Tolerancia de 10 pesos
-              matchedPayment = paymentInfo;
-            } else {
-              return { success: false, message: `El monto de la transacción #${cleanTxId} ($${mpAmount}) no coincide con el de la cuota ($${targetAmount}).` };
-            }
+      const url = `https://api.mercadopago.com/v1/payments/${cleanTxId}`;
+      const options = {
+        method: "get",
+        headers: { "Authorization": "Bearer " + token },
+        muteHttpExceptions: true
+      };
+      
+      const response = UrlFetchApp.fetch(url, options);
+      if (response.getResponseCode() === 200) {
+        const paymentInfo = JSON.parse(response.getContentText());
+        if (paymentInfo.status === 'approved') {
+          const mpAmount = parseFloat(paymentInfo.transaction_amount || 0);
+          if (Math.abs(mpAmount - targetAmount) < 10.0) { // Tolerancia de 10 pesos
+            matchedPayment = paymentInfo;
           } else {
-            return { success: false, message: `La transacción #${cleanTxId} se encuentra en estado '${paymentInfo.status}' (debe estar approved).` };
+            return { success: false, message: `El monto de la transacción #${cleanTxId} ($${mpAmount}) no coincide con el de la cuota ($${targetAmount}).` };
           }
         } else {
-          return { success: false, message: `No se pudo encontrar la transacción #${cleanTxId} en Mercado Pago. Verificá el número e intentá de nuevo.` };
+          return { success: false, message: `La transacción #${cleanTxId} se encuentra en estado '${paymentInfo.status}' (debe estar approved).` };
         }
+      } else {
+        return { success: false, message: `No se pudo encontrar la transacción #${cleanTxId} en Mercado Pago. Verificá el número e intentá de nuevo.` };
       }
     } else {
       // Caso B: Buscar en los últimos 50 movimientos o mock para Coelsa ID
@@ -1313,16 +1289,7 @@ function conciliarPagoTransferenciaAutomatico(paymentId, email, amount, month, p
         }
       }
 
-      if (isTestUser && cleanTxId) {
-        // Simular éxito inmediato para usuario de test con el Coelsa ID detectado
-        matchedPayment = {
-          id: `TEST-MP-${Date.now().toString().slice(-4)}`,
-          status: "approved",
-          transaction_amount: targetAmount,
-          payer: { email: socioEmail },
-          operation_type: "Transferencia MP"
-        };
-      } else {
+      {
         const url = "https://api.mercadopago.com/v1/payments?sort=date_created&criteria=desc&limit=50";
         const options = {
           method: "get",
@@ -1447,9 +1414,7 @@ function conciliarPagoTransferenciaAutomatico(paymentId, email, amount, month, p
       registrarLogAuditoria(socioEmail, "MODIFICAR", "PAGO", `Conciliación AUTOMÁTICA exitosa para cuota ${month} por $${targetAmount.toLocaleString('es-AR')}. MP ID: ${txId}`);
       
       let msg = `¡Pago conciliado y acreditado automáticamente! Se encontró la transferencia #${txId} por $${targetAmount.toLocaleString('es-AR')} en la cuenta del club.`;
-      if (isTestUser) {
-        msg = `[TEST MOCK] Acreditación exitosa. CoelsaID: ${cleanTxId} | Importe extraído: $${ocrAmount || "No detectado"}`;
-      }
+
       return { success: true, message: msg };
     }
     
