@@ -1,4 +1,4 @@
-const CACHE_NAME = 'haedo-futsal-v11';
+const CACHE_NAME = 'haedo-futsal-v12';
 
 self.addEventListener('install', event => {
   console.log('[SW] Instalado.');
@@ -7,7 +7,18 @@ self.addEventListener('install', event => {
 
 self.addEventListener('activate', event => {
   console.log('[SW] Activado.');
-  event.waitUntil(self.clients.claim());
+  event.waitUntil(
+    caches.keys().then(cacheNames => {
+      return Promise.all(
+        cacheNames.map(cache => {
+          if (cache !== CACHE_NAME && cache !== 'receipt-share') {
+            console.log('[SW] Borrando caché vieja:', cache);
+            return caches.delete(cache);
+          }
+        })
+      );
+    }).then(() => self.clients.claim())
+  );
 });
 
 self.addEventListener('fetch', event => {
