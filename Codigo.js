@@ -1165,7 +1165,7 @@ function registrarPagoTransferenciaComprobante(paymentId, email, amount, month, 
  * Intenta conciliar de forma automática el pago por transferencia del socio
  * contrastando contra la API de Mercado Pago. Si tiene éxito, acredita la cuota al instante.
  */
-function conciliarPagoTransferenciaAutomatico(paymentId, email, amount, month, paymentMethod, base64Receipt, transactionId) {
+function conciliarPagoTransferenciaAutomatico(paymentId, email, amount, month, paymentMethod, base64Receipt, transactionId, ocrAmount) {
   try {
     const ss = getSpreadsheet();
     
@@ -1233,6 +1233,13 @@ function conciliarPagoTransferenciaAutomatico(paymentId, email, amount, month, p
     
     // Caso de pruebas/mock para facilitar verificación sin transacción real en MP
     const isTestUser = socioEmail && (socioEmail.toLowerCase().includes("jprueba") || socioEmail.toLowerCase().includes("prueba") || socioEmail.toLowerCase().includes("deportista"));
+    
+    if (isTestUser && ocrAmount !== null && ocrAmount !== undefined) {
+      const parsedOcrAmt = parseFloat(ocrAmount);
+      if (!isNaN(parsedOcrAmt) && Math.abs(parsedOcrAmt - targetAmount) > 0.01) {
+        return { success: false, message: `El importe detectado en el comprobante ($${parsedOcrAmt}) no coincide con el valor de la cuota ($${targetAmount}).` };
+      }
+    }
     
     if (transactionId && transactionId.trim().length > 0) {
       cleanTxId = transactionId.trim();
