@@ -1218,61 +1218,78 @@ function conciliarPagoTransferenciaAutomatico(paymentId, email, amount, month, p
       }
     }
     
-    let matchedPayment = null;
+    function getStringHash(str) {
+      let hash = 0;
+      if (!str) return hash;
+      for (let i = 0; i < str.length; i++) {
+        const char = str.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash |= 0;
+      }
+      return Math.abs(hash).toString(16);
+    }
+
+    let cleanTxId = "";
     
     // Caso de pruebas/mock para facilitar verificación sin transacción real en MP
     const isTestUser = socioEmail && (socioEmail.toLowerCase().includes("jprueba") || socioEmail.toLowerCase().includes("prueba") || socioEmail.toLowerCase().includes("deportista"));
     
     if (isTestUser) {
-      const mockTxId = "MOCK-TX-" + Date.now().toString().slice(-6);
-      matchedPayment = {
-        id: mockTxId,
-        status: "approved",
-        transaction_amount: targetAmount,
-        payer: { email: socioEmail },
-        operation_type: "Transferencia MP"
-      };
-    } else if (transactionId && (transactionId.trim().toUpperCase().includes("TEST") || transactionId.trim().toUpperCase().includes("PRUEBA") || transactionId.trim() === "123456789")) {
-      matchedPayment = {
-        id: transactionId.trim(),
-        status: "approved",
-        transaction_amount: targetAmount,
-        payer: { email: socioEmail },
-        operation_type: "Transferencia MP"
-      };
+      const fileHash = getStringHash(base64Receipt || "");
+      cleanTxId = "MOCK-TX-" + fileHash;
     } else if (transactionId && transactionId.trim().length > 0) {
-      const cleanTxId = transactionId.trim();
-      
+      cleanTxId = transactionId.trim();
+    }
+
+    if (cleanTxId) {
       // Verificar si ya fue acreditado en nuestra BD para evitar duplicados
       for (let i = 1; i < pagosData.length; i++) {
         const collectedBy = pagosData[i][pByCol] || "";
         if (collectedBy.includes(cleanTxId)) {
-          return { success: false, message: `La transacción #${cleanTxId} ya fue acreditada anteriormente para otra cuota.` };
+          return { success: false, message: `El comprobante ingresado (ID: ${cleanTxId}) ya fue utilizado para acreditar otra cuota.` };
         }
       }
       
-      const url = `https://api.mercadopago.com/v1/payments/${cleanTxId}`;
-      const options = {
-        method: "get",
-        headers: { "Authorization": "Bearer " + token },
-        muteHttpExceptions: true
-      };
-      
-      const response = UrlFetchApp.fetch(url, options);
-      if (response.getResponseCode() === 200) {
-        const paymentInfo = JSON.parse(response.getContentText());
-        if (paymentInfo.status === 'approved') {
-          const mpAmount = parseFloat(paymentInfo.transaction_amount || 0);
-          if (Math.abs(mpAmount - targetAmount) < 10.0) { // Tolerancia de 10 pesos
-            matchedPayment = paymentInfo;
+      if (isTestUser) {
+        matchedPayment = {
+          id: cleanTxId,
+          status: "approved",
+          transaction_amount: targetAmount,
+          payer: { email: socioEmail },
+          operation_type: "Transferencia MP"
+        };
+      } else if (cleanTxId.toUpperCase().includes("TEST") || cleanTxId.toUpperCase().includes("PRUEBA") || cleanTxId === "123456789") {
+        matchedPayment = {
+          id: cleanTxId,
+          status: "approved",
+          transaction_amount: targetAmount,
+          payer: { email: socioEmail },
+          operation_type: "Transferencia MP"
+        };
+      } else {
+        const url = `https://api.mercadopago.com/v1/payments/${cleanTxId}`;
+        const options = {
+          method: "get",
+          headers: { "Authorization": "Bearer " + token },
+          muteHttpExceptions: true
+        };
+        
+        const response = UrlFetchApp.fetch(url, options);
+        if (response.getResponseCode() === 200) {
+          const paymentInfo = JSON.parse(response.getContentText());
+          if (paymentInfo.status === 'approved') {
+            const mpAmount = parseFloat(paymentInfo.transaction_amount || 0);
+            if (Math.abs(mpAmount - targetAmount) < 10.0) { // Tolerancia de 10 pesos
+              matchedPayment = paymentInfo;
+            } else {
+              return { success: false, message: `El monto de la transacción #${cleanTxId} ($${mpAmount}) no coincide con el de la cuota ($${targetAmount}).` };
+            }
           } else {
-            return { success: false, message: `El monto de la transacción #${cleanTxId} ($${mpAmount}) no coincide con el de la cuota ($${targetAmount}).` };
+            return { success: false, message: `La transacción #${cleanTxId} se encuentra en estado '${paymentInfo.status}' (debe estar approved).` };
           }
         } else {
-          return { success: false, message: `La transacción #${cleanTxId} se encuentra en estado '${paymentInfo.status}' (debe estar approved).` };
+          return { success: false, message: `No se pudo encontrar la transacción #${cleanTxId} en Mercado Pago. Verificá el número e intentá de nuevo.` };
         }
-      } else {
-        return { success: false, message: `No se pudo encontrar la transacción #${cleanTxId} en Mercado Pago. Verificá el número e intentá de nuevo.` };
       }
     } else {
       // Caso B: Buscar en los últimos 50 movimientos
