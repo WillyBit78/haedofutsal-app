@@ -3635,6 +3635,9 @@
     };
 
     window.onload = function() {
+      // Verificar si viene recibo compartido (Web Share Target)
+      chequearReciboCompartido();
+
       // Verificar si viene solicitud de restablecimiento de clave
       const urlParams = new URLSearchParams(window.location.search);
       const action = urlParams.get('action');
