@@ -4264,7 +4264,9 @@
       selectCuota.innerHTML = "";
       
       const pagos = (estadoApp.datosSocio && estadoApp.datosSocio.pagos) || [];
-      const deudas = pagos.filter(p => p.Status === "Pendiente");
+      const deudas = pagos
+        .filter(p => p.Status === "Pendiente")
+        .sort((a, b) => (a.Month || '').localeCompare(b.Month || ''));
       
       if (deudas.length === 0) {
         alert("No tenés cuotas pendientes de pago.");
@@ -4281,9 +4283,11 @@
         selectCuota.appendChild(option);
       });
       
-      // Auto-seleccionar cuota correspondiente y deshabilitar para evitar cambios mid-proceso
+      // Auto-seleccionar cuota correspondiente (si se seleccionó manualmente) o por defecto la más antigua
       if (cuotaSeleccionadaPago) {
         selectCuota.value = cuotaSeleccionadaPago.paymentId;
+      } else if (deudas.length > 0) {
+        selectCuota.value = deudas[0].Payment_ID;
       }
       selectCuota.disabled = true;
       
