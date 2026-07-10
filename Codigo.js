@@ -177,6 +177,7 @@ function loginUsuario(username, password) {
  */
 function obtenerDatosSocio(email) {
   try {
+    verificarYGenerarCuotasMensuales();
     const emailNorm = email.toLowerCase().trim();
     const ss = getSpreadsheet();
     const getVal = (row, idx) => (row && idx !== -1 && idx < row.length && row[idx] !== undefined && row[idx] !== null) ? row[idx].toString().trim() : "";
@@ -334,6 +335,7 @@ function obtenerDatosSocio(email) {
  */
 function obtenerDatosAdmin() {
   try {
+    verificarYGenerarCuotasMensuales();
     const ss = getSpreadsheet();
     const getVal = (row, idx) => (row && idx !== -1 && idx < row.length && row[idx] !== undefined && row[idx] !== null) ? row[idx].toString().trim() : "";
     
@@ -1603,6 +1605,7 @@ function rechazarRevisionPagoComprobante(paymentId, email, month, motivo) {
  */
 function obtenerDatosSocioPublico(identifier) {
   try {
+    verificarYGenerarCuotasMensuales();
     const ss = getSpreadsheet();
     const sheetUsers = ss.getSheetByName(HOJA_USUARIOS);
     if (!sheetUsers) throw new Error("No se encontró la hoja de usuarios.");
@@ -2430,3 +2433,208 @@ function actualizarPrecios(categoriasObj, torneosObj, userEmail) {
     return { success: false, message: error.toString() };
   }
 }
+
+/**
+ * Verifica y genera cuotas mensuales automáticamente para los socios
+ * a partir de Julio 2026.
+ */
+function verificarYGenerarCuotasMensuales() {
+  try {
+    const ss = getSpreadsheet();
+    const sheetPagos = ss.getSheetByName(HOJA_PAGOS);
+    const sheetUsuarios = ss.getSheetByName(HOJA_USUARIOS);
+    const sheetCategorias = ss.getSheetByName(HOJA_CATEGORIAS);
+    
+    if (!sheetPagos || !sheetUsuarios || !sheetCategorias) return;
+    
+    const now = new Date();
+    // Ajustar a zona horaria Argentina (UTC-3)
+    const offset = -3;
+    const argDate = new Date(now.getTime() + offset * 3600 * 1000);
+    const currentYear = argDate.getUTCFullYear();
+    const currentMonthNum = argDate.getUTCMonth() + 1; // 1-12
+    const currentDay = argDate.getUTCDate();
+    
+    const currentMonthStr = `${currentYear}-${String(currentMonthNum).padStart(2, '0')}`;
+    
+    // Generar cuotas desde Julio 2026 (2026-07)
+    const startYear = 2026;
+    const startMonth = 7;
+    
+    const monthsToGenerate = [];
+    let y = startYear;
+    let m = startMonth;
+    
+    while (true) {
+      if (y > currentYear || (y === currentYear && m > currentMonthNum)) {
+        break;
+      }
+      monthsToGenerate.push(`${y}-${String(m).padStart(2, '0')}`);
+      m++;
+      if (m > 12) {
+        m = 1;
+        y++;
+      }
+    }
+    
+    // Obtener precios de categorías para cuotas
+    const catData = sheetCategorias.getDataRange().getValues();
+    const catHeaders = catData[0];
+    const catIdIdx = catHeaders.indexOf("Category_ID");
+    const catNameIdx = catHeaders.indexOf("Name");
+    const catFeeIdx = catHeaders.indexOf("Monthly_Fee");
+    
+    const categoryFees = {};
+    for (let i = 1; i < catData.length; i++) {
+      const id = String(catData[i][catIdIdx] || "").trim().toLowerCase();
+      const name = String(catData[i][catNameIdx] || "").trim().toLowerCase();
+      const fee = parseFloat(catData[i][catFeeIdx]) || 0;
+      if (id) categoryFees[id] = fee;
+      if (name) categoryFees[name] = fee;
+    }
+    
+    // Obtener socios activos
+    const userData = sheetUsuarios.getDataRange().getValues();
+    const userHeaders = userData[0];
+    const userEmailIdx = userHeaders.indexOf("Email");
+    const userRoleIdx = userHeaders.indexOf("Role");
+    const userCatIdx = userHeaders.indexOf("Category");
+    
+    const activeSocios = [];
+    for (let i = 1; i < userData.length; i++) {
+      const email = String(userData[i][userEmailIdx] || "").trim().toLowerCase();
+      const role = String(userData[i][userRoleIdx] || "").trim();
+      const category = String(userData[i][userCatIdx] || "").trim();
+      
+      if (role === "Deportista" && email) {
+        activeSocios.push({ email, category });
+      }
+    }
+    
+    // Obtener pagos existentes
+    const pagosRange = sheetPagos.getDataRange();
+    const pagosData = pagosRange.getValues();
+    const pagosHeaders = pagosData[0];
+    const pIdCol = pagosHeaders.indexOf("Payment_ID");
+    const pEmailCol = pagosHeaders.indexOf("Email");
+    const pMonthCol = pagosHeaders.indexOf("Month");
+    const pStatusCol = pagosHeaders.indexOf("Status");
+    const pAmountCol = pagosHeaders.indexOf("Amount");
+    
+    const existingPayments = {};
+    for (let i = 1; i < pagosData.length; i++) {
+      const email = String(pagosData[i][pEmailCol] || "").trim().toLowerCase();
+      const month = String(pagosData[i][pMonthCol] || "").trim();
+      const status = String(pagosData[i][pStatusCol] || "").trim();
+      const amount = parseFloat(pagosData[i][pAmountCol]) || 0;
+      
+      existingPayments[`${email}|${month}`] = {
+        rowNum: i + 1,
+        status: status,
+        amount: amount
+      };
+    }
+    
+    let dbModified = false;
+    
+    // Función fuzzy para resolver el precio de la categoría
+    function getSocioFee(categoryStr) {
+      if (!categoryStr) return 0;
+      const cats = categoryStr.split(",").map(c => c.trim().toLowerCase());
+      let maxFee = 0;
+      
+      cats.forEach(c => {
+        let fee = categoryFees[c];
+        if (fee === undefined) {
+          // Intentar fuzzy match
+          const clean = c.replace(/[^a-z0-9+]/g, "");
+          for (const key in categoryFees) {
+            const cleanKey = key.replace(/[^a-z0-9+]/g, "");
+            if (clean === cleanKey || clean.includes(cleanKey) || cleanKey.includes(clean)) {
+              fee = categoryFees[key];
+              break;
+            }
+          }
+          
+          if (fee === undefined) {
+            // Intentar por tokens específicos de categoría
+            for (const key in categoryFees) {
+              const k = key.toLowerCase();
+              if (k.includes("edefi") && clean.includes("edefi")) {
+                if (k.includes("30") && clean.includes("30")) { fee = categoryFees[key]; break; }
+                if (k.includes("35") && clean.includes("35")) { fee = categoryFees[key]; break; }
+                if (k.includes("42") && clean.includes("42")) { fee = categoryFees[key]; break; }
+                if (k.includes("baby") && clean.includes("baby")) { fee = categoryFees[key]; break; }
+              }
+              if (k.includes("bafi") && clean.includes("bafi")) {
+                if (k.includes("fem") && clean.includes("fem")) { fee = categoryFees[key]; break; }
+                if (k.includes("masc") && clean.includes("masc")) { fee = categoryFees[key]; break; }
+                if (k.includes("5ta") && clean.includes("5ta")) { fee = categoryFees[key]; break; }
+                if (k.includes("4ta") && clean.includes("4ta")) { fee = categoryFees[key]; break; }
+                if (k.includes("3ra") && clean.includes("3ra")) { fee = categoryFees[key]; break; }
+                if (k.includes("res") && clean.includes("res")) { fee = categoryFees[key]; break; }
+                if (k.includes("1ra") && clean.includes("1ra")) { fee = categoryFees[key]; break; }
+              }
+              if (k.includes("futsala") && clean.includes("futsala")) {
+                if (k.includes("prom") && clean.includes("prom")) { fee = categoryFees[key]; break; }
+                if (k.includes("8va") && clean.includes("8va")) { fee = categoryFees[key]; break; }
+                if (k.includes("7ma") && clean.includes("7ma")) { fee = categoryFees[key]; break; }
+                if (k.includes("6ta") && clean.includes("6ta")) { fee = categoryFees[key]; break; }
+                if (k.includes("5ta") && clean.includes("5ta")) { fee = categoryFees[key]; break; }
+                if (k.includes("4ta") && clean.includes("4ta")) { fee = categoryFees[key]; break; }
+                if (k.includes("3ra") && clean.includes("3ra")) { fee = categoryFees[key]; break; }
+                if (k.includes("1ra") && clean.includes("1ra")) { fee = categoryFees[key]; break; }
+              }
+            }
+          }
+        }
+        
+        const numericFee = parseFloat(fee) || 0;
+        if (numericFee > maxFee) maxFee = numericFee;
+      });
+      
+      return maxFee;
+    }
+    
+    // Generar y validar cuotas mes a mes
+    monthsToGenerate.forEach(month => {
+      activeSocios.forEach(socio => {
+        const key = `${socio.email}|${month}`;
+        const existing = existingPayments[key];
+        
+        let targetStatus = "Pendiente";
+        if (month < currentMonthStr) {
+          targetStatus = "Deuda";
+        } else if (month === currentMonthStr) {
+          targetStatus = (currentDay > 10) ? "Deuda" : "Pendiente";
+        }
+        
+        if (!existing) {
+          const amount = getSocioFee(socio.category);
+          const payId = `PAG-${Date.now().toString().slice(-4)}-${Math.floor(Math.random() * 100)}`;
+          
+          sheetPagos.appendRow([payId, socio.email, month, amount, targetStatus, "", "", ""]);
+          dbModified = true;
+          
+          existingPayments[key] = { status: targetStatus, amount: amount };
+          console.log(`[AutoCuota] Generado pago para ${socio.email} del mes ${month} por $${amount}. Estado: ${targetStatus}`);
+        } else {
+          // Actualizar de Pendiente a Deuda si ya pasó el día 10 del mes correspondiente
+          if (existing.status === "Pendiente" && targetStatus === "Deuda") {
+            sheetPagos.getRange(existing.rowNum, pStatusCol + 1).setValue("Deuda");
+            dbModified = true;
+            console.log(`[AutoCuota] Actualizado pago de ${socio.email} para el mes ${month} a DEUDA`);
+          }
+        }
+      });
+    });
+    
+    if (dbModified) {
+      SpreadsheetApp.flush();
+    }
+    
+  } catch (error) {
+    console.error("Error en verificarYGenerarCuotasMensuales:", error);
+  }
+}
+
