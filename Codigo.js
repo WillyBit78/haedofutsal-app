@@ -2485,12 +2485,18 @@ function verificarYGenerarCuotasMensuales() {
     const catFeeIdx = catHeaders.indexOf("Monthly_Fee");
     
     const categoryFees = {};
+    const parentCategoryFees = {};
     for (let i = 1; i < catData.length; i++) {
       const id = String(catData[i][catIdIdx] || "").trim().toLowerCase();
       const name = String(catData[i][catNameIdx] || "").trim().toLowerCase();
       const fee = parseFloat(catData[i][catFeeIdx]) || 0;
       if (id) categoryFees[id] = fee;
       if (name) categoryFees[name] = fee;
+      
+      const parentId = obtenerCategoriaPadre(id);
+      if (parentId && fee) {
+        parentCategoryFees[parentId.toLowerCase()] = fee;
+      }
     }
     
     // Obtener socios activos
@@ -2545,8 +2551,15 @@ function verificarYGenerarCuotasMensuales() {
       
       cats.forEach(c => {
         let fee = categoryFees[c];
+        
+        // 1. Si no hay coincidencia exacta por ID/Nombre de subcategoría, intentar por Categoría Padre
         if (fee === undefined) {
-          // Intentar fuzzy match
+          const parentId = obtenerCategoriaPadre(c).toLowerCase();
+          fee = parentCategoryFees[parentId];
+        }
+        
+        // 2. Si no hay coincidencia de padre, probar fuzzy match
+        if (fee === undefined) {
           const clean = c.replace(/[^a-z0-9+]/g, "");
           for (const key in categoryFees) {
             const cleanKey = key.replace(/[^a-z0-9+]/g, "");
@@ -2555,36 +2568,37 @@ function verificarYGenerarCuotasMensuales() {
               break;
             }
           }
-          
-          if (fee === undefined) {
-            // Intentar por tokens específicos de categoría
-            for (const key in categoryFees) {
-              const k = key.toLowerCase();
-              if (k.includes("edefi") && clean.includes("edefi")) {
-                if (k.includes("30") && clean.includes("30")) { fee = categoryFees[key]; break; }
-                if (k.includes("35") && clean.includes("35")) { fee = categoryFees[key]; break; }
-                if (k.includes("42") && clean.includes("42")) { fee = categoryFees[key]; break; }
-                if (k.includes("baby") && clean.includes("baby")) { fee = categoryFees[key]; break; }
-              }
-              if (k.includes("bafi") && clean.includes("bafi")) {
-                if (k.includes("fem") && clean.includes("fem")) { fee = categoryFees[key]; break; }
-                if (k.includes("masc") && clean.includes("masc")) { fee = categoryFees[key]; break; }
-                if (k.includes("5ta") && clean.includes("5ta")) { fee = categoryFees[key]; break; }
-                if (k.includes("4ta") && clean.includes("4ta")) { fee = categoryFees[key]; break; }
-                if (k.includes("3ra") && clean.includes("3ra")) { fee = categoryFees[key]; break; }
-                if (k.includes("res") && clean.includes("res")) { fee = categoryFees[key]; break; }
-                if (k.includes("1ra") && clean.includes("1ra")) { fee = categoryFees[key]; break; }
-              }
-              if (k.includes("futsala") && clean.includes("futsala")) {
-                if (k.includes("prom") && clean.includes("prom")) { fee = categoryFees[key]; break; }
-                if (k.includes("8va") && clean.includes("8va")) { fee = categoryFees[key]; break; }
-                if (k.includes("7ma") && clean.includes("7ma")) { fee = categoryFees[key]; break; }
-                if (k.includes("6ta") && clean.includes("6ta")) { fee = categoryFees[key]; break; }
-                if (k.includes("5ta") && clean.includes("5ta")) { fee = categoryFees[key]; break; }
-                if (k.includes("4ta") && clean.includes("4ta")) { fee = categoryFees[key]; break; }
-                if (k.includes("3ra") && clean.includes("3ra")) { fee = categoryFees[key]; break; }
-                if (k.includes("1ra") && clean.includes("1ra")) { fee = categoryFees[key]; break; }
-              }
+        }
+        
+        // 3. Coincidencia por tokens/palabras específicas
+        if (fee === undefined) {
+          const clean = c.replace(/[^a-z0-9+]/g, "");
+          for (const key in categoryFees) {
+            const k = key.toLowerCase();
+            if (k.includes("edefi") && clean.includes("edefi")) {
+              if (k.includes("30") && clean.includes("30")) { fee = categoryFees[key]; break; }
+              if (k.includes("35") && clean.includes("35")) { fee = categoryFees[key]; break; }
+              if (k.includes("42") && clean.includes("42")) { fee = categoryFees[key]; break; }
+              if (k.includes("baby") && clean.includes("baby")) { fee = categoryFees[key]; break; }
+            }
+            if (k.includes("bafi") && clean.includes("bafi")) {
+              if (k.includes("fem") && clean.includes("fem")) { fee = categoryFees[key]; break; }
+              if (k.includes("masc") && clean.includes("masc")) { fee = categoryFees[key]; break; }
+              if (k.includes("5ta") && clean.includes("5ta")) { fee = categoryFees[key]; break; }
+              if (k.includes("4ta") && clean.includes("4ta")) { fee = categoryFees[key]; break; }
+              if (k.includes("3ra") && clean.includes("3ra")) { fee = categoryFees[key]; break; }
+              if (k.includes("res") && clean.includes("res")) { fee = categoryFees[key]; break; }
+              if (k.includes("1ra") && clean.includes("1ra")) { fee = categoryFees[key]; break; }
+            }
+            if (k.includes("futsala") && clean.includes("futsala")) {
+              if (k.includes("prom") && clean.includes("prom")) { fee = categoryFees[key]; break; }
+              if (k.includes("8va") && clean.includes("8va")) { fee = categoryFees[key]; break; }
+              if (k.includes("7ma") && clean.includes("7ma")) { fee = categoryFees[key]; break; }
+              if (k.includes("6ta") && clean.includes("6ta")) { fee = categoryFees[key]; break; }
+              if (k.includes("5ta") && clean.includes("5ta")) { fee = categoryFees[key]; break; }
+              if (k.includes("4ta") && clean.includes("4ta")) { fee = categoryFees[key]; break; }
+              if (k.includes("3ra") && clean.includes("3ra")) { fee = categoryFees[key]; break; }
+              if (k.includes("1ra") && clean.includes("1ra")) { fee = categoryFees[key]; break; }
             }
           }
         }
@@ -2619,6 +2633,16 @@ function verificarYGenerarCuotasMensuales() {
           existingPayments[key] = { status: targetStatus, amount: amount };
           console.log(`[AutoCuota] Generado pago para ${socio.email} del mes ${month} por $${amount}. Estado: ${targetStatus}`);
         } else {
+          // Si el pago ya existe pero tiene un importe de $0 (por error previo), corregirlo al importe correspondiente
+          if (existing.amount === 0) {
+            const correctAmount = getSocioFee(socio.category);
+            if (correctAmount > 0) {
+              sheetPagos.getRange(existing.rowNum, pAmountCol + 1).setValue(correctAmount);
+              dbModified = true;
+              console.log(`[AutoCuota] Corregida cuota de $0 a $${correctAmount} para ${socio.email} del mes ${month}`);
+            }
+          }
+          
           // Actualizar de Pendiente a Deuda si ya pasó el día 10 del mes correspondiente
           if (existing.status === "Pendiente" && targetStatus === "Deuda") {
             sheetPagos.getRange(existing.rowNum, pStatusCol + 1).setValue("Deuda");
