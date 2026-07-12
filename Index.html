@@ -9910,7 +9910,7 @@
             
             const coelsaId = t.point_of_interaction?.transaction_data?.transaction_id || t.point_of_interaction?.transaction_data?.bank_transfer_id || t.point_of_interaction?.transaction_data?.e2e_id;
             let displayId = t.id;
-            if (coelsaId && coelsaId.toString().length >= 20) {
+            if (coelsaId && coelsaId.toString().length === 22 && !coelsaId.toString().includes('-')) {
                 displayId = coelsaId;
             }
             
