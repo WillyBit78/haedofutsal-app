@@ -11,6 +11,8 @@ const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
 const os = require('os');
+const Tesseract = require('tesseract.js');
+const axios = require('axios');
 const app = express();
 const PORT = process.env.PORT || 3000;
 const DB_FILE = path.join(__dirname, 'db.json');
@@ -538,6 +540,53 @@ app.get('/api/migrate-usuarios', async (req, res) => {
     res.json({ ok: true, results });
   } catch (err) {
     res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+// ==========================================
+// ENDPOINT MERCADO PAGO Y OCR
+// ==========================================
+const MP_TOKEN = process.env.MP_TOKEN || 'APP_USR-3322444120483456-062819-f186f817a6a28fd7251c13baaf3d014e-43153257';
+
+app.post('/api/scan-receipt', async (req, res) => {
+  try {
+    const { imageBase64 } = req.body;
+    if (!imageBase64) return res.status(400).json({ error: 'Falta imagen' });
+
+    console.log('[OCR] Iniciando escaneo de comprobante...');
+    const { data: { text } } = await Tesseract.recognize(imageBase64, 'spa', {
+      logger: m => {} // silenciar logs internos
+    });
+    
+    let code = null;
+    const codeMatch = text.match(/(?:operaci[oó]n|comprobante|transacci[oó]n|cod.*?)\s*[:#Nro]*\s*([0-9A-Z]{8,20})/i);
+    if (codeMatch) {
+      code = codeMatch[1];
+    }
+    
+    let amount = null;
+    const amountMatch = text.match(/\$\s*([\d\.,]+)/);
+    if (amountMatch) {
+      amount = amountMatch[1];
+    }
+    
+    console.log(`[OCR] Éxito. Codigo: ${code}, Monto: ${amount}`);
+    res.json({ text, extractedCode: code, extractedAmount: amount });
+  } catch (error) {
+    console.error('[OCR Error]', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/api/mp-transfers', async (req, res) => {
+  try {
+    const response = await axios.get('https://api.mercadopago.com/v1/payments/search?sort=date_created&criteria=desc&limit=50', {
+      headers: { 'Authorization': `Bearer ${MP_TOKEN}` }
+    });
+    res.json(response.data);
+  } catch (error) {
+    console.error('[MP API Error]', error.response?.data || error.message);
+    res.status(500).json({ error: 'Error fetching from Mercado Pago', details: error.response?.data });
   }
 });
 
