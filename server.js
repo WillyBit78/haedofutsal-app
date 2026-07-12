@@ -1,3 +1,10 @@
+// Helper para obtener fecha actual en formato ISO horario Argentina (UTC-3)
+function getArgIsoString() {
+  const now = new Date();
+  const argDate = new Date(now.getTime() - 3 * 3600 * 1000);
+  return argDate.toISOString();
+}
+
 /**
  * Haedo Futsal ERP - Servidor de Desarrollo Local (Simulador Apps Script)
  * Ejecuta este servidor con Node.js para probar la aplicación al 100% en localhost.
@@ -655,7 +662,7 @@ app.post('/api/run', (req, res) => {
         } else if (functionName === 'marcarPagoComoPagado' && args[0]) {
           const pid = args[0];
           const collector = args[1] || 'Admin';
-          const nowStr = new Date().toISOString().replace("T", " ").substring(0, 16);
+          const nowStr = getArgIsoString().replace("T", " ").substring(0, 16);
           const payload = JSON.stringify({ status: 'Pagado', collected_by: collector, collected_at: nowStr });
           const req = https.request(new URL('/rest/v1/pagos?payment_id=eq.' + encodeURIComponent(pid), SUPABASE_URL), {
             method: 'PATCH', headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json' }
@@ -717,7 +724,7 @@ app.post('/api/mp-webhook', (req, res) => {
               // Caso A: Pago directo por preferencia/checkout (trae external_reference)
               const extRef = paymentInfo.external_reference;
               if (extRef && extRef.startsWith('PAG-')) {
-                syncSupabase('pagos', 'PATCH', { status: 'Pagado', collected_by: 'MercadoPago', collected_at: new Date().toISOString().substring(0, 10) }, `?payment_id=eq.${encodeURIComponent(extRef)}`);
+                syncSupabase('pagos', 'PATCH', { status: 'Pagado', collected_by: 'MercadoPago', collected_at: getArgIsoString().substring(0, 10) }, `?payment_id=eq.${encodeURIComponent(extRef)}`);
                 console.log(`[MP SUCCESS] Acreditado pago de checkout: ${extRef}`);
                 return;
               }
@@ -742,7 +749,7 @@ app.post('/api/mp-webhook', (req, res) => {
                   const pagosSocio = syncSupabase('pagos', 'GET', null, `?email=eq.${encodeURIComponent(matchedUser.email)}&status=eq.Pendiente&order=month.asc`);
                   if (Array.isArray(pagosSocio) && pagosSocio.length > 0) {
                     const oldestPayment = pagosSocio[0];
-                    syncSupabase('pagos', 'PATCH', { status: 'Pagado', collected_by: 'Transferencia MP', collected_at: new Date().toISOString().substring(0, 10) }, `?payment_id=eq.${encodeURIComponent(oldestPayment.payment_id)}`);
+                    syncSupabase('pagos', 'PATCH', { status: 'Pagado', collected_by: 'Transferencia MP', collected_at: getArgIsoString().substring(0, 10) }, `?payment_id=eq.${encodeURIComponent(oldestPayment.payment_id)}`);
                     console.log(`[MP SUCCESS] Acreditada cuota ${oldestPayment.payment_id} (${oldestPayment.month}) para ${matchedUser.name}`);
                   }
                 }
