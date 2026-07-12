@@ -602,7 +602,11 @@ app.get('/api/mp-transfers', async (req, res) => {
     // Filtrar solo las transferencias aprobadas y que sean ingreso de dinero por transferencia (bancaria o de saldo MP)
     const receivedTransfers = (response.data.results || []).filter(t => 
       t.status === 'approved' && 
-      (t.operation_type === 'account_fund' || t.operation_type === 'money_transfer')
+      (
+        t.operation_type === 'money_transfer' || 
+        t.payment_type_id === 'bank_transfer' ||
+        (t.operation_type === 'regular_payment' && (t.payment_method_id === 'account_money' || t.payment_method_id === 'cvu' || t.payment_method_id === 'transfer'))
+      )
     );
     
     res.json({ results: receivedTransfers });
