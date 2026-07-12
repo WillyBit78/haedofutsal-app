@@ -9769,17 +9769,24 @@
                   // Limpiar URL
                   window.history.replaceState({}, document.title, window.location.pathname);
                   
-                  // Borrar de cache
-                  cache.delete('/shared-receipt-file');
-                  
                   // Abrir o encolar comprobante
                   if (estadoApp.userEmail) {
-                    mostrarModalValidarComprobanteCompartido(file);
+                    const nombreUsuario = estadoApp.datosSocio ? estadoApp.datosSocio.Nombre : estadoApp.userEmail;
+                    const esParaEstaCuenta = confirm(`Has compartido un comprobante de pago.
+\nActualmente estás en la cuenta de: ${nombreUsuario}\n\n¿Querés registrar el pago para ESTA cuenta?\n\n(Elegí Cancelar para entrar con otro usuario)`);
+                    
+                    if (esParaEstaCuenta) {
+                      cache.delete('/shared-receipt-file');
+                      mostrarModalValidarComprobanteCompartido(file);
+                    } else {
+                      // Mantenemos el archivo en caché para cuando inicie sesión
+                      ejecutarLogout();
+                    }
                   } else {
+                    cache.delete('/shared-receipt-file');
                     window.sharedReceiptPendiente = file;
                     console.log('[PWA] Recibo compartido guardado en cola para post-login.');
                   }
-                });
               }
             });
           });
