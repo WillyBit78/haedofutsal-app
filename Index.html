@@ -2725,10 +2725,10 @@
       </div>
       <div class="modal-footer" style="border-top: 1px solid var(--border-color); padding-top: 12px; margin-top: 14px; display:flex; gap:8px; justify-content:flex-end;">
         <button class="modal-btn cancel" onclick="cerrarModalRevisionAdmin()">Cerrar</button>
-        <button class="modal-btn" onclick="confirmarRechazoRevisionAdmin()" style="background:#ef4444; color:#ffffff; border:none; padding:8px 14px; border-radius:8px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:4px;">
+        <button class="modal-btn" onclick="confirmarRechazoRevisionAdmin()" style="background:#ef4444; color:#ffffff; border:1px solid #ef4444;">
           <i class="fa-solid fa-trash"></i> Rechazar
         </button>
-        <button class="modal-btn" onclick="confirmarAprobacionRevisionAdmin()" style="background:#10b981; color:#ffffff; border:none; padding:8px 14px; border-radius:8px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:4px;">
+        <button class="modal-btn" onclick="confirmarAprobacionRevisionAdmin()" style="background:#10b981; color:#ffffff; border:1px solid #10b981;">
           <i class="fa-solid fa-circle-check"></i> Aprobar Pago
         </button>
       </div>
@@ -4095,9 +4095,12 @@
               </div>
             </div>
           `;
-        } else if (p.Status === "Pendiente") {
+        } else if (p.Status === "Pendiente" || p.Status === "Deuda") {
+          const badgeText = p.Status === "Deuda" ? "Deuda" : "Pendiente";
+          const bgColor = p.Status === "Deuda" ? "#fee2e2" : "#fef9c3";
+          const textColor = p.Status === "Deuda" ? "#dc2626" : "#ca8a04";
           statusBadgeHTML = `
-            <span class="badge" style="background-color:#fef9c3; color:#ca8a04; font-weight:700; padding:4px 8px; border-radius:6px; font-size:0.7rem; text-transform:uppercase; margin-bottom:2px;">Pendiente</span>
+            <span class="badge" style="background-color:${bgColor}; color:${textColor}; font-weight:700; padding:4px 8px; border-radius:6px; font-size:0.7rem; text-transform:uppercase; margin-bottom:2px;">${badgeText}</span>
           `;
           actionHTML = `
             <button class="btn-sm-pay" onclick="abrirModalMetodoPago('${p.Payment_ID}', '${p.Month}', '${p.Amount}')" style="margin-left:8px; display:flex; align-items:center; gap:4px; font-size:0.72rem; padding:6px 10px; border-radius:6px;">
@@ -4776,13 +4779,13 @@
     function obtenerEstadoSocioMes(email, currentMonth, pagos) {
       const pagosSocio = (pagos || []).filter(p => p.Email.toLowerCase() === email.toLowerCase());
       const pagoMesActual = pagosSocio.find(p => p.Month === currentMonth);
-      const tieneDeudaAnterior = pagosSocio.some(p => p.Month < currentMonth && p.Status === "Pendiente");
+      const tieneDeudaAnterior = pagosSocio.some(p => p.Month < currentMonth && (p.Status === "Pendiente" || p.Status === "Deuda"));
 
       if (pagoMesActual && pagoMesActual.Status === "Pagado") {
         return "aldia"; // Verde
       }
-      if (tieneDeudaAnterior) {
-        return "moroso"; // Rojo (deuda acumulada)
+      if (tieneDeudaAnterior || (pagoMesActual && pagoMesActual.Status === "Deuda")) {
+        return "moroso"; // Rojo (deuda acumulada o cuota actual vencida)
       }
       return "pendiente"; // Amarillo (cuota mes actual pendiente sin deuda acumulada)
     }
@@ -6030,7 +6033,7 @@
 
             // --- Badge de estado de cuenta ---
             const badgeEl = document.getElementById("ficha-status-badge");
-            const pagosPendientes = response.pagos.filter(p => p.Status === "Pendiente");
+            const pagosPendientes = response.pagos.filter(p => p.Status === "Pendiente" || p.Status === "Deuda");
             const deudaTotal = pagosPendientes.reduce((sum, p) => sum + parseFloat(p.Amount || 0), 0);
             if (deudaTotal > 0) {
               badgeEl.innerHTML = `
@@ -6069,10 +6072,14 @@
                 row.style.boxShadow = "0 1px 3px rgba(0,0,0,0.04)";
                 
                 let actionHTML = "";
-                if (p.Status === "Pendiente") {
+                if (p.Status === "Pendiente" || p.Status === "Deuda") {
+                  const badgeText = p.Status === "Deuda" ? "Deuda" : "Pendiente";
+                  const badgeBg = p.Status === "Deuda" ? "rgba(220,38,38,0.12)" : "rgba(239,68,68,0.12)";
+                  const badgeColor = p.Status === "Deuda" ? "#b91c1c" : "#dc2626";
+                  
                   actionHTML = `
                     <div style="display:flex; align-items:center; gap:8px;">
-                      <span class="badge pending" style="background:rgba(239,68,68,0.12); color:#dc2626; border:1px solid rgba(239,68,68,0.25); font-weight:700; padding:4px 10px; border-radius:6px; font-size:0.75rem;"><i class="fa-solid fa-clock" style="margin-right:4px;"></i> Pendiente</span>
+                      <span class="badge pending" style="background:${badgeBg}; color:${badgeColor}; border:1px solid rgba(239,68,68,0.25); font-weight:700; padding:4px 10px; border-radius:6px; font-size:0.75rem;"><i class="fa-solid fa-clock" style="margin-right:4px;"></i> ${badgeText}</span>
                       <button class="btn-action-icon" onclick="solicitarCobroManual('${p.Payment_ID}')" title="Cobrar Efectivo" style="background:#2563eb; color:#ffffff; border:none; width:32px; height:32px; border-radius:8px; cursor:pointer; display:flex; align-items:center; justify-content:center;">
                         <i class="fa-solid fa-cash-register"></i>
                       </button>
@@ -9736,7 +9743,7 @@
               <div>ID: ${p.Payment_ID}</div>
             </div>
             <div style="display:flex; gap:10px; margin-top:5px;">
-              <button class="btn-primary" style="flex:1; justify-content:center; display:flex; align-items:center; gap:8px; background:#f59e0b; border:none; color:white;" onclick="abrirModalRevisionAdmin('${p.Payment_ID}', '${p.Month}', '${p.Amount}', '${safeBase64}', '${p.Email}')">
+              <button class="btn-primary" style="flex:1; justify-content:center; display:flex; align-items:center; gap:8px; background:var(--primary); border:1px solid var(--primary); color:white;" onclick="abrirModalRevisionAdmin('${p.Payment_ID}', '${p.Month}', '${p.Amount}', '${safeBase64}', '${p.Email}')">
                 <i class="fa-solid fa-file-invoice-dollar"></i> Revisar Pago
               </button>
             </div>
