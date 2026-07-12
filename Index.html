@@ -17,6 +17,13 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <!-- Tesseract OCR Library for client-side receipt scanning -->
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+  <!-- PDF.js for parsing PDF receipts -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+  <script>
+    if (typeof pdfjsLib !== 'undefined') {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+    }
+  </script>
   
   <style>
     /* VARIABLES DE DISEÑO MODO CLARO DEPORTIVO MODERNO (OPCIÓN 1) */
@@ -4544,10 +4551,8 @@
       if (statusText) statusText.textContent = "Buscando código de identificación (CoelsaID) e importe...";
       
       // Ejecutar OCR en cliente para buscar el CoelsaID de 22 caracteres e importe
-      Tesseract.recognize(file, 'eng+spa')
-        .then(function(result) {
-          const text = (result && result.data && result.data.text) || "";
-          console.log("[OCR] Texto extraído del comprobante:", text);
+            const processOCRText = function(text) {
+          console.log("[OCR/PDF] Texto extraído del comprobante:", text);
           
           const coelsaRegex = /\b([A-Z0-9]{22})\b/g;
           const matches = text.match(coelsaRegex) || [];
@@ -4557,18 +4562,17 @@
           
           if (validMatches.length > 0) {
             detectedCoelsaId = validMatches[0];
-            console.log("[OCR] CoelsaID detectado:", detectedCoelsaId);
+            console.log("[OCR/PDF] CoelsaID detectado:", detectedCoelsaId);
           } else {
             const relaxedRegex = /[A-Z0-9]{22}/g;
             const relaxedMatches = text.match(relaxedRegex) || [];
             const validRelaxed = relaxedMatches.filter(m => /[A-Z]/.test(m));
             if (validRelaxed.length > 0) {
               detectedCoelsaId = validRelaxed[0];
-              console.log("[OCR] CoelsaID detectado (relaxed):", detectedCoelsaId);
+              console.log("[OCR/PDF] CoelsaID detectado (relaxed):", detectedCoelsaId);
             }
           }
 
-          // Función robusta para extraer importes del texto del comprobante
           function parseCurrencyString(valStr) {
             if (valStr.includes(",") && valStr.includes(".")) {
               return parseFloat(valStr.replace(/\./g, "").replace(",", "."));
@@ -4595,7 +4599,6 @@
               "dinero enviado", "importe de la operacion", "monto neto"
             ];
             
-            // 1. Intentar buscar por palabras clave
             for (let kw of keywords) {
               const idx = cleanText.indexOf(kw);
               if (idx !== -1) {
@@ -4605,14 +4608,12 @@
                 if (match) {
                   const val = parseCurrencyString(match[1]);
                   if (!isNaN(val) && val > 0 && val < 500000) {
-                    console.log(`[OCR] Monto detectado por palabra clave "${kw}":`, val);
                     return val;
                   }
                 }
               }
             }
             
-            // 2. Buscar números precedidos por $, S, s, B, b o espacio
             const symbolRegex = /(?:[\$\sSsbB])\s*(\d+(?:[.,]\d{1,3})?)/g;
             const amountsFound = [];
             let symMatch;
@@ -4627,7 +4628,6 @@
               return Math.max(...amountsFound);
             }
             
-            // 3. Fallback: Buscar cualquier número con dos decimales (ej: 1500,00 o 2,00)
             const decimalRegex = /\b(\d+[.,]\d{2})\b/g;
             let decMatch;
             while ((decMatch = decimalRegex.exec(rawText)) !== null) {
@@ -4636,15 +4636,15 @@
                 amountsFound.push(val);
               }
             }
+            
             if (amountsFound.length > 0) {
               return Math.max(...amountsFound);
             }
-            
             return null;
           }
 
           const detectedAmount = extractAmountFromText(text);
-          console.log("[OCR] Importe final extraído:", detectedAmount);
+          console.log("[OCR/PDF] Importe final extraído:", detectedAmount);
           
           if (statusText) statusText.textContent = "Conciliando pago con Mercado Pago...";
           
@@ -4658,11 +4658,11 @@
             cerrarModalValidarComprobante();
           };
           reader.readAsDataURL(file);
-        })
-        .catch(function(err) {
-          console.error("[OCR] Error al procesar Tesseract OCR:", err);
+      };
+
+      const handleError = function(err) {
+          console.error("[OCR/PDF] Error al procesar:", err);
           if (statusText) statusText.textContent = "Conciliando pago sin código de identificación...";
-          
           const reader = new FileReader();
           reader.onload = function(e) {
             const base64Data = e.target.result;
@@ -4673,7 +4673,29 @@
             cerrarModalValidarComprobante();
           };
           reader.readAsDataURL(file);
-        });
+      };
+
+      if (file.type === "application/pdf") {
+        if (typeof pdfjsLib !== "undefined") {
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            const typedarray = new Uint8Array(e.target.result);
+            pdfjsLib.getDocument(typedarray).promise.then(pdf => {
+              let promises = [];
+              for(let i = 1; i <= pdf.numPages; i++) {
+                promises.push(pdf.getPage(i).then(page => page.getTextContent().then(c => c.items.map(it => it.str).join(" "))));
+              }
+              Promise.all(promises).then(pages => processOCRText(pages.join("\n"))).catch(handleError);
+            }).catch(handleError);
+          };
+          reader.onerror = function() { handleError(new Error("File read error")); };
+          reader.readAsArrayBuffer(file);
+        } else {
+          handleError(new Error("pdf.js not loaded"));
+        }
+      } else {
+        Tesseract.recognize(file, 'eng+spa').then(res => processOCRText(res.data.text)).catch(handleError);
+      }
     }
 
     function ejecutarConciliacionAutomatica(paymentId, email, amount, month, transferMethod, base64Data, transactionId, ocrAmount) {
