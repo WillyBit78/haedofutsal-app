@@ -599,8 +599,11 @@ app.get('/api/mp-transfers', async (req, res) => {
       headers: { 'Authorization': `Bearer ${MP_TOKEN}` }
     });
     
-    // Filtrar solo las transferencias aprobadas y recibidas (status === 'approved')
-    const receivedTransfers = (response.data.results || []).filter(t => t.status === 'approved');
+    // Filtrar solo las transferencias aprobadas y que sean ingreso de dinero por transferencia (bancaria o de saldo MP)
+    const receivedTransfers = (response.data.results || []).filter(t => 
+      t.status === 'approved' && 
+      (t.operation_type === 'account_fund' || t.operation_type === 'money_transfer')
+    );
     
     res.json({ results: receivedTransfers });
   } catch (error) {
