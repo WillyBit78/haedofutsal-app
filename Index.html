@@ -6254,7 +6254,7 @@
       const decodedReceipt = decodeURIComponent(base64Receipt || "");
       
       let socioLabel = email;
-      const socioData = (estadoApp.datosAdmin?.usuarios || []).find(u => {
+      const socioData = (estadoApp.datosAdmin?.socios || []).find(u => {
           const emailMatch = (u.Email || "").trim().toLowerCase() === (email || "").trim().toLowerCase();
           const userMatch = (u.Username || "").trim().toLowerCase() === (email || "").split('@')[0].trim().toLowerCase();
           return emailMatch || userMatch;
@@ -7301,7 +7301,7 @@
     function procesarYRenderizarReporte(tipo, mes) {
       const dbFinanzas = estadoApp.datosAdmin.finanzas || [];
       const dbPagos = estadoApp.datosAdmin.pagos || [];
-      const dbUsuarios = estadoApp.datosAdmin.usuarios || [];
+      const dbUsuarios = estadoApp.datosAdmin.socios || [];
       
       const cards = document.getElementById("reporte-resumen-cards");
       const canvas = document.getElementById("reporte-grafico-canvas");
@@ -9836,7 +9836,7 @@
         listPendientes.innerHTML = `<div class="empty-state"><p>No hay cuotas pendientes de revisión.</p></div>`;
       } else {
         listPendientes.innerHTML = pagosRevision.map(p => {
-          const socioData = (estadoApp.datosAdmin?.usuarios || []).find(u => {
+          const socioData = (estadoApp.datosAdmin?.socios || []).find(u => {
             const emailMatch = (u.Email || "").trim().toLowerCase() === (p.Email || "").trim().toLowerCase();
             const userMatch = (u.Username || "").trim().toLowerCase() === (p.Email || "").split('@')[0].trim().toLowerCase();
             return emailMatch || userMatch;
@@ -9966,7 +9966,7 @@
       }
       
       container.innerHTML = filtrados.map(p => {
-        const socioData = (estadoApp.datosAdmin?.usuarios || []).find(u => {
+        const socioData = (estadoApp.datosAdmin?.socios || []).find(u => {
           const emailMatch = (u.Email || "").trim().toLowerCase() === (p.Email || "").trim().toLowerCase();
           const userMatch = (u.Username || "").trim().toLowerCase() === (p.Email || "").split('@')[0].trim().toLowerCase();
           return emailMatch || userMatch;
