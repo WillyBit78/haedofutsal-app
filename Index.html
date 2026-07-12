@@ -2282,6 +2282,41 @@
         </div>
       </div>
       
+      <!-- ITEM 1.5: REVISIONES -->
+      <div class="card" style="margin-bottom: 8px; padding: 12px 14px; background: #ffffff; border-left: 4px solid #f59e0b;">
+        <div class="accordion-header" onclick="toggleFinanzasAccordion('acc-revisiones', this)">
+          <h3 style="font-size: 0.9rem; font-weight: 700; margin: 0; color: #0f172a; display: flex; align-items: center; gap: 6px;">
+            <i class="fa-solid fa-list-check" style="color: #f59e0b;"></i> Revisiones & Transferencias
+          </h3>
+          <i class="fa-solid fa-chevron-down accordion-arrow"></i>
+        </div>
+        
+        <div id="acc-revisiones" class="accordion-body" style="display: none;">
+          <!-- Pestañas internas -->
+          <div style="display:flex; gap:10px; margin-bottom:15px; margin-top:10px;">
+            <button id="btn-tab-rev-pendientes" class="btn-primary" style="flex:1; border-radius:8px;" onclick="cambiarTabRevisiones('pendientes')">Cuotas en Revisión</button>
+            <button id="btn-tab-rev-mp" class="btn-secondary" style="flex:1; border-radius:8px;" onclick="cambiarTabRevisiones('mp')">Transferencias MP</button>
+          </div>
+          
+          <div id="tab-rev-pendientes" style="display:block;">
+            <div id="admin-revisiones-list" style="display:flex; flex-direction:column; gap:10px;">
+              <div class="empty-state"><p>Cargando cuotas...</p></div>
+            </div>
+          </div>
+          
+          <div id="tab-rev-mp" style="display:none;">
+            <div style="display:flex; gap:8px; margin-bottom:12px; align-items:center;">
+              <input type="date" id="mp-filter-start" class="form-input" style="flex:1; padding:8px; font-size:0.8rem;">
+              <input type="date" id="mp-filter-end" class="form-input" style="flex:1; padding:8px; font-size:0.8rem;">
+              <button class="btn-primary" onclick="cargarRevisionesYTransferencias()" style="padding:8px 12px; border-radius:8px;"><i class="fa-solid fa-search"></i></button>
+            </div>
+            <div id="admin-mp-list" style="display:flex; flex-direction:column; gap:10px;">
+              <div class="empty-state"><p>Cargando transferencias...</p></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
       <!-- ITEM 2: LIGAS & TORNEOS -->
       <div class="card" style="margin-bottom: 8px; padding: 12px 14px; background: #ffffff; border-left: 4px solid #d97706;">
         <div class="accordion-header" onclick="toggleFinanzasAccordion('acc-torneos', this)">
@@ -2491,47 +2526,7 @@
       </div>
     </div>
 
-    <!-- ========================================== -->
-    <!-- 18. VISTA ADMIN REVISIONES Y TRANSFERENCIAS -->
-    <!-- ========================================== -->
-    <div id="admin-revisiones-view" class="view-section">
-      <div class="header-bar">
-        <div class="header-brand">
-          <img src="logo.png" class="club-header-logo" alt="Haedo Futsal">
-          <div class="header-info">
-            <h2 style="color:#0f172a;">Revisiones & MP</h2>
-          </div>
-        </div>
-      </div>
-      <div class="view-content" style="padding:15px; padding-bottom:80px;">
-        <!-- Pestañas internas -->
-        <div style="display:flex; gap:10px; margin-bottom:15px;">
-          <button id="btn-tab-rev-pendientes" class="btn-primary" style="flex:1; border-radius:8px;" onclick="cambiarTabRevisiones('pendientes')">Cuotas en Revisión</button>
-          <button id="btn-tab-rev-mp" class="btn-secondary" style="flex:1; border-radius:8px;" onclick="cambiarTabRevisiones('mp')">Transferencias MP</button>
-        </div>
-        
-        <div id="tab-rev-pendientes" style="display:block;">
-          <h3 style="font-size:1rem; font-weight:800; color:#0f172a; margin-bottom:10px;"><i class="fa-solid fa-list-check" style="color:#1d4ed8; margin-right:5px;"></i> Pendientes de Revisión</h3>
-          <div id="admin-revisiones-list" style="display:flex; flex-direction:column; gap:10px;">
-            <div class="empty-state"><p>Cargando cuotas...</p></div>
-          </div>
-        </div>
-        
-        <div id="tab-rev-mp" style="display:none;">
-          <h3 style="font-size:1rem; font-weight:800; color:#0f172a; margin-bottom:10px;"><i class="fa-solid fa-building-columns" style="color:#10b981; margin-right:5px;"></i> Últimos Ingresos (Mercado Pago)</h3>
-          
-          <div style="display:flex; gap:8px; margin-bottom:12px; align-items:center;">
-            <input type="date" id="mp-filter-start" class="form-input" style="flex:1; padding:8px; font-size:0.8rem;">
-            <input type="date" id="mp-filter-end" class="form-input" style="flex:1; padding:8px; font-size:0.8rem;">
-            <button class="btn-primary" onclick="cargarRevisionesYTransferencias()" style="padding:8px 12px; border-radius:8px;"><i class="fa-solid fa-search"></i></button>
-          </div>
 
-          <div id="admin-mp-list" style="display:flex; flex-direction:column; gap:10px;">
-            <div class="empty-state"><p>Cargando transferencias...</p></div>
-          </div>
-        </div>
-      </div>
-    </div>
 
     <!-- VISTA ADMIN: AGENDA & PARTIDOS -->
     <div id="admin-agenda-view" class="view-section">
@@ -2648,10 +2643,7 @@
       <i class="fa-solid fa-trophy"></i>
       <span>Finanzas</span>
     </button>
-    <button class="nav-item" id="nav-admin-revisiones" onclick="navegarAdmin('revisiones')">
-      <i class="fa-solid fa-list-check"></i>
-      <span>Revisiones</span>
-    </button>
+
     <button class="nav-item" id="nav-admin-agenda" onclick="navegarAdmin('agenda')">
       <i class="fa-solid fa-calendar-check"></i>
       <span>Agenda</span>
@@ -3633,17 +3625,17 @@
     // 2. Open/Closed Principle: Extensible Role Permissions Configuration Matrix
     const RolePermissions = {
       Admin: {
-        allowedViews: ["admin-inicio-view", "admin-socios-view", "admin-torneos-view", "admin-agenda-view", "club-tienda-view", "admin-revisiones-view"],
+        allowedViews: ["admin-inicio-view", "admin-socios-view", "admin-torneos-view", "admin-agenda-view", "club-tienda-view"],
         navBar: "admin",
-        visibleTabs: ["nav-admin-inicio", "nav-admin-socios", "nav-admin-torneos", "nav-admin-revisiones", "nav-admin-agenda", "nav-admin-tienda"],
+        visibleTabs: ["nav-admin-inicio", "nav-admin-socios", "nav-admin-torneos", "nav-admin-agenda", "nav-admin-tienda"],
         defaultView: "inicio",
         canEditFinanzas: true,
         canEditMatches: true
       },
       Coach: {
-        allowedViews: ["admin-inicio-view", "admin-socios-view", "admin-torneos-view", "admin-agenda-view", "club-tienda-view", "admin-revisiones-view"],
+        allowedViews: ["admin-inicio-view", "admin-socios-view", "admin-torneos-view", "admin-agenda-view", "club-tienda-view"],
         navBar: "admin",
-        visibleTabs: ["nav-admin-inicio", "nav-admin-socios", "nav-admin-torneos", "nav-admin-revisiones", "nav-admin-agenda", "nav-admin-tienda"],
+        visibleTabs: ["nav-admin-inicio", "nav-admin-socios", "nav-admin-torneos", "nav-admin-agenda", "nav-admin-tienda"],
         defaultView: "inicio",
         canEditFinanzas: false,
         canEditMatches: true
@@ -4771,9 +4763,6 @@
         cargarSelectTorneos();
         actualizarDropdownFechasJornada();
         filtrarYCalcularFinanzas();
-      } else if (seccion === 'revisiones') {
-        mostrarPantalla("admin-revisiones-view");
-        cargarRevisionesYTransferencias();
       } else if (seccion === 'agenda') {
         mostrarPantalla("admin-agenda-view");
         cargarSelectAgendaFilters();
@@ -6802,6 +6791,12 @@
           headerEl.classList.add("active");
         } else {
           headerEl.classList.remove("active");
+        }
+      }
+      
+      if (bodyId === 'acc-revisiones' && isCollapsed) {
+        if (document.getElementById("admin-revisiones-list")?.innerHTML.includes("Cargando cuotas")) {
+          cargarRevisionesYTransferencias();
         }
       }
       
