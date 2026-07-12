@@ -1601,6 +1601,74 @@ function rechazarRevisionPagoComprobante(paymentId, email, month, motivo) {
 }
 
 /**
+ * Actualiza masivamente el estado de una lista de cuotas.
+ */
+function actualizarEstadoCuotasMasivo(paymentIds, nuevoEstado, adminEmail) {
+  try {
+    if (!paymentIds || !paymentIds.length) return { success: false, message: "No se seleccionaron pagos." };
+    const validStates = ["Pendiente", "Revision", "En Revisión", "Pagado", "Rechazada"];
+    if (!validStates.includes(nuevoEstado)) return { success: false, message: "Estado inválido." };
+
+    const ss = getSpreadsheet();
+    const sheetPagos = ss.getSheetByName(HOJA_PAGOS);
+    const pagosData = sheetPagos.getDataRange().getValues();
+    const headers = pagosData[0];
+    
+    const idColIndex = headers.indexOf("Payment_ID");
+    const statusColIndex = headers.indexOf("Status");
+    const byColIndex = headers.indexOf("Collected_By");
+    const atColIndex = headers.indexOf("Collected_At");
+    const mpLinkColIndex = headers.indexOf("MP_Link");
+    const transactionIdColIndex = headers.indexOf("MP_Transaction_ID");
+    
+    let count = 0;
+    const nowStr = new Date().toISOString().replace("T", " ").substring(0, 16);
+    const actorStr = adminEmail ? adminEmail.split('@')[0] : 'Admin';
+
+    for (let i = 1; i < pagosData.length; i++) {
+      const pid = pagosData[i][idColIndex].toString().trim();
+      if (paymentIds.includes(pid)) {
+        const rowNum = i + 1;
+        const currentStatus = pagosData[i][statusColIndex];
+
+        if (currentStatus !== nuevoEstado) {
+          sheetPagos.getRange(rowNum, statusColIndex + 1).setValue(nuevoEstado);
+          
+          if (nuevoEstado === "Pagado") {
+            if (!pagosData[i][atColIndex]) {
+              sheetPagos.getRange(rowNum, atColIndex + 1).setValue(nowStr);
+            }
+            if (!pagosData[i][byColIndex]) {
+              sheetPagos.getRange(rowNum, byColIndex + 1).setValue("Actualización Masiva (" + actorStr + ")");
+            }
+          } else if (nuevoEstado === "Rechazada") {
+             sheetPagos.getRange(rowNum, atColIndex + 1).setValue(""); 
+          } else if (nuevoEstado === "Pendiente") {
+             sheetPagos.getRange(rowNum, atColIndex + 1).setValue("");
+             if (mpLinkColIndex !== -1) sheetPagos.getRange(rowNum, mpLinkColIndex + 1).setValue("");
+             if (byColIndex !== -1) sheetPagos.getRange(rowNum, byColIndex + 1).setValue("");
+             if (transactionIdColIndex !== -1) sheetPagos.getRange(rowNum, transactionIdColIndex + 1).setValue("");
+          }
+          count++;
+        }
+      }
+    }
+    
+    SpreadsheetApp.flush();
+    if (count > 0) {
+      if (typeof registrarLogAuditoria === "function") {
+        registrarLogAuditoria(adminEmail || "Admin", "ACTUALIZAR", "PAGOS", `Se actualizaron masivamente ${count} cuota(s) al estado '${nuevoEstado}'.`);
+      }
+    }
+    
+    return { success: true, message: `Se actualizaron correctamente ${count} cuota(s).` };
+  } catch (error) {
+    console.error("Error en actualizarEstadoCuotasMasivo:", error);
+    return { success: false, message: error.message };
+  }
+}
+
+/**
  * Obtiene los datos personales de un socio por su Email, DNI, Teléfono o Username.
  */
 function obtenerDatosSocioPublico(identifier) {
