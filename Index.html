@@ -4860,6 +4860,9 @@
 
             document.getElementById("admin-metric-socios").innerText = response.metrics.totalSocios;
             animarNumero("admin-metric-socios", response.metrics.totalSocios);
+            
+            if (typeof cargarRevisionesYTransferencias === 'function') cargarRevisionesYTransferencias();
+            if (typeof renderizarTodasLasCuotas === 'function') renderizarTodasLasCuotas();
 
             // --- Calcular desglose global de socios del mes ---
             const socios = response.socios || [];
@@ -6208,7 +6211,11 @@
       const decodedReceipt = decodeURIComponent(base64Receipt || "");
       
       let socioLabel = email;
-      const socioData = (estadoApp.datosAdmin?.usuarios || []).find(u => (u.Email || "").toLowerCase() === email.toLowerCase());
+      const socioData = (estadoApp.datosAdmin?.usuarios || []).find(u => {
+          const emailMatch = (u.Email || "").trim().toLowerCase() === (email || "").trim().toLowerCase();
+          const userMatch = (u.Username || "").trim().toLowerCase() === (email || "").split('@')[0].trim().toLowerCase();
+          return emailMatch || userMatch;
+        });
       if (socioData) {
         const socioName = socioData.Username || socioData.Name || email.split('@')[0];
         const socioCat = socioData.Category || "Sin Categoría";
@@ -9781,7 +9788,11 @@
         listPendientes.innerHTML = `<div class="empty-state"><p>No hay cuotas pendientes de revisión.</p></div>`;
       } else {
         listPendientes.innerHTML = pagosRevision.map(p => {
-          const socioData = (estadoApp.datosAdmin?.usuarios || []).find(u => (u.Email || "").toLowerCase() === (p.Email || "").toLowerCase());
+          const socioData = (estadoApp.datosAdmin?.usuarios || []).find(u => {
+            const emailMatch = (u.Email || "").trim().toLowerCase() === (p.Email || "").trim().toLowerCase();
+            const userMatch = (u.Username || "").trim().toLowerCase() === (p.Email || "").split('@')[0].trim().toLowerCase();
+            return emailMatch || userMatch;
+          });
           let socioName = p.Email.split('@')[0];
           let socioCat = "Sin Categoría";
           if (socioData) {
@@ -9861,6 +9872,149 @@
           console.error(err);
           listMp.innerHTML = `<div class="empty-state"><p style="color:#ef4444;"><i class="fa-solid fa-triangle-exclamation"></i> Error al cargar transferencias de MP.</p></div>`;
         });
+    }
+
+    // --- NUEVAS FUNCIONES PARA GESTIÓN MASIVA DE CUOTAS ---
+    let cuotasSeleccionadasMasivo = new Set();
+
+    function renderizarTodasLasCuotas() {
+      const container = document.getElementById("admin-todas-cuotas-list");
+      const monthFilter = document.getElementById("filter-todas-month")?.value;
+      const emailFilter = document.getElementById("filter-todas-email")?.value.toLowerCase() || "";
+      
+      const todosPagos = estadoApp.datosAdmin?.pagos || [];
+      
+      // Filtrar
+      let filtrados = todosPagos.filter(p => {
+        if (monthFilter && p.Month !== monthFilter) return false;
+        if (emailFilter && !(p.Email || "").toLowerCase().includes(emailFilter)) return false;
+        return true;
+      });
+      
+      // Ordenar por mes descendente
+      filtrados.sort((a, b) => (b.Month || '').localeCompare(a.Month || ''));
+      
+      if (filtrados.length === 0) {
+        container.innerHTML = `<div class="empty-state"><p>No se encontraron cuotas con los filtros actuales.</p></div>`;
+        return;
+      }
+      
+      container.innerHTML = filtrados.map(p => {
+        const socioData = (estadoApp.datosAdmin?.usuarios || []).find(u => {
+          const emailMatch = (u.Email || "").trim().toLowerCase() === (p.Email || "").trim().toLowerCase();
+          const userMatch = (u.Username || "").trim().toLowerCase() === (p.Email || "").split('@')[0].trim().toLowerCase();
+          return emailMatch || userMatch;
+        });
+        let socioName = p.Email.split('@')[0];
+        let socioCat = "Sin Categoría";
+        if (socioData) {
+          socioName = socioData.Username || socioData.Name || socioName;
+          socioCat = socioData.Category || "Sin Categoría";
+        }
+        
+        const isChecked = cuotasSeleccionadasMasivo.has(p.Payment_ID) ? 'checked' : '';
+        
+        let statusBadge = "";
+        if (p.Status === "Pagado") {
+          statusBadge = `<span class="badge" style="background:#dcfce7; color:#16a34a; font-weight:700; padding:4px 8px; border-radius:6px; font-size:0.7rem;">Pagado</span>`;
+        } else if (p.Status === "Revision" || p.Status === "En Revisión") {
+          statusBadge = `<span class="badge" style="background:#fef3c7; color:#d97706; font-weight:700; padding:4px 8px; border-radius:6px; font-size:0.7rem;">En Revisión</span>`;
+        } else if (p.Status === "Pendiente") {
+          statusBadge = `<span class="badge" style="background:#fef9c3; color:#ca8a04; font-weight:700; padding:4px 8px; border-radius:6px; font-size:0.7rem;">Pendiente</span>`;
+        } else if (p.Status === "Rechazada") {
+          statusBadge = `<span class="badge" style="background:#fee2e2; color:#dc2626; font-weight:700; padding:4px 8px; border-radius:6px; font-size:0.7rem;">Rechazada</span>`;
+        } else if (p.Status === "Deuda") {
+          statusBadge = `<span class="badge" style="background:#fee2e2; color:#dc2626; font-weight:700; padding:4px 8px; border-radius:6px; font-size:0.7rem;">Deuda</span>`;
+        } else {
+          statusBadge = `<span class="badge" style="background:#e2e8f0; color:#475569; font-weight:700; padding:4px 8px; border-radius:6px; font-size:0.7rem;">${p.Status}</span>`;
+        }
+        
+        return `
+          <div class="row-card" style="display:flex; align-items:center; padding:10px; border-radius:10px; background:#fff; border:1px solid #e2e8f0; gap:12px;">
+            <input type="checkbox" class="chk-cuota-masivo" value="${p.Payment_ID}" ${isChecked} onchange="toggleCuotaMasivo('${p.Payment_ID}', this.checked)" style="width:18px; height:18px; cursor:pointer;">
+            <div style="flex:1; display:flex; flex-direction:column; gap:2px;">
+              <div style="font-weight:800; color:#0f172a; font-size:0.85rem;">${socioName} <span style="font-weight:600; color:#64748b; font-size:0.75rem;">| ${socioCat}</span></div>
+              <div style="font-size:0.75rem; color:#475569; font-weight:600;">Cuota: ${p.Month} &nbsp;&bull;&nbsp; $${parseFloat(p.Amount || 0).toLocaleString('es-AR')}</div>
+            </div>
+            <div>
+              ${statusBadge}
+            </div>
+          </div>
+        `;
+      }).join('');
+      
+      // Reset Select All
+      const chkTodas = document.getElementById("chk-todas-cuotas");
+      if (chkTodas) {
+        chkTodas.checked = Array.from(document.querySelectorAll('.chk-cuota-masivo')).every(chk => chk.checked) && document.querySelectorAll('.chk-cuota-masivo').length > 0;
+      }
+    }
+
+    function toggleCuotaMasivo(paymentId, isChecked) {
+      if (isChecked) {
+        cuotasSeleccionadasMasivo.add(paymentId);
+      } else {
+        cuotasSeleccionadasMasivo.delete(paymentId);
+      }
+      
+      const chkTodas = document.getElementById("chk-todas-cuotas");
+      if (chkTodas) {
+        const allChecked = Array.from(document.querySelectorAll('.chk-cuota-masivo')).every(chk => chk.checked);
+        chkTodas.checked = allChecked && document.querySelectorAll('.chk-cuota-masivo').length > 0;
+      }
+    }
+
+    function toggleAllCuotas(isChecked) {
+      const checkboxes = document.querySelectorAll('.chk-cuota-masivo');
+      checkboxes.forEach(chk => {
+        chk.checked = isChecked;
+        if (isChecked) {
+          cuotasSeleccionadasMasivo.add(chk.value);
+        } else {
+          cuotasSeleccionadasMasivo.delete(chk.value);
+        }
+      });
+    }
+
+    function aplicarAccionMasivaCuotas() {
+      const select = document.getElementById("select-bulk-status");
+      const nuevoEstado = select.value;
+      if (!nuevoEstado) {
+        alert("Selecciona una acción masiva de la lista.");
+        return;
+      }
+      if (cuotasSeleccionadasMasivo.size === 0) {
+        alert("No has seleccionado ninguna cuota.");
+        return;
+      }
+      
+      if (!confirm(`¿Estás seguro de que quieres cambiar el estado de ${cuotasSeleccionadasMasivo.size} cuota(s) a '${nuevoEstado}'?`)) {
+        return;
+      }
+      
+      const idsArr = Array.from(cuotasSeleccionadasMasivo);
+      
+      mostrarCarga("Aplicando cambios masivos...");
+      google.script.run
+        .withSuccessHandler(function(response) {
+          if (response && response.success) {
+            cuotasSeleccionadasMasivo.clear();
+            const chkTodas = document.getElementById("chk-todas-cuotas");
+            if (chkTodas) chkTodas.checked = false;
+            select.value = "";
+            alert(response.message);
+            // Actualizar vista completa
+            cargarDatosAdministracion();
+          } else {
+            ocultarCarga();
+            alert("Error: " + (response ? response.message : "Error desconocido"));
+          }
+        })
+        .withFailureHandler(function(err) {
+          ocultarCarga();
+          alert("Error de red: " + err.toString());
+        })
+        .actualizarEstadoCuotasMasivo(idsArr, nuevoEstado, estadoApp.userEmail);
     }
 
     function abrirModalComprobante(base64) {
