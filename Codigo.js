@@ -1324,7 +1324,12 @@ function conciliarPagoTransferenciaAutomatico(paymentId, email, amount, month, p
       }
 
       {
-        const url = "https://api.mercadopago.com/v1/payments?sort=date_created&criteria=desc&limit=50";
+        const now = new Date();
+        const past = new Date(now.getTime() - 4 * 24 * 3600 * 1000); // Buscar 4 días atrás (96hs) por seguridad
+        const beginDate = past.toISOString();
+        const endDate = now.toISOString();
+        const url = `https://api.mercadopago.com/v1/payments/search?sort=date_created&criteria=desc&limit=100&range=date_created&begin_date=${encodeURIComponent(beginDate)}&end_date=${encodeURIComponent(endDate)}`;
+        
         const options = {
           method: "get",
           headers: { "Authorization": "Bearer " + token },
