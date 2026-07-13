@@ -1,4 +1,4 @@
-const CACHE_NAME = 'haedo-futsal-v22';
+const CACHE_NAME = 'haedo-futsal-v23';
 
 self.addEventListener('install', event => {
   console.log('[SW] Instalado.');
