@@ -1193,7 +1193,7 @@ function registrarPagoTransferenciaComprobante(paymentId, email, amount, month, 
  * Intenta conciliar de forma automática el pago por transferencia del socio
  * contrastando contra la API de Mercado Pago. Si tiene éxito, acredita la cuota al instante.
  */
-function conciliarPagoTransferenciaAutomatico(paymentId, email, amount, month, paymentMethod, base64Receipt, transactionId, ocrAmount) {
+function conciliarPagoTransferenciaAutomatico(paymentId, email, amount, month, paymentMethod, base64Receipt, transactionId, ocrAmount, ocrText) {
   try {
     const ss = getSpreadsheet();
     
