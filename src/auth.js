@@ -8,10 +8,10 @@ const authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
   
-  if (!token) return res.status(401).json({ success: false, message: 'Token requerido' });
+  if (!token) return res.status(401).json({ success: false, error:  });
   
   jwt.verify(token, JWT_SECRET, (err, user) => {
-    if (err) return res.status(403).json({ success: false, message: 'Token invlido o expirado' });
+    if (err) return res.status(403).json({ success: false, error:  });
     req.user = user;
     next();
   });
