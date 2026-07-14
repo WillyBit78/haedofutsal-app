@@ -2335,7 +2335,15 @@
           </div>
         </div>
         <div style="display:flex; align-items:center; gap:8px;">
-          <button class="btn-secondary" onclick="abrirModalReportes()" style="font-size:0.75rem; padding:6px 12px; background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.3); color:#10b981; border-radius:10px; cursor:pointer; font-weight:600; display:flex; align-items:center; gap:6px;">
+          
+          <div class="user-avatar-badge" style="width: 32px; height: 32px; border-radius: 50%; background: var(--primary); color: white; display: none; align-items: center; justify-content: center; font-weight: 800; font-size: 1.1rem; margin-right: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" title="Usuario Logueado"></div>
+          <button class="btn-logout" onclick="ejecutarLogout()" title="Cerrar sesión">
+            <i class="fa-solid fa-right-from-bracket"></i>
+          </button>
+        </div>
+      </div>
+      <div id="finanzas-top-buttons" style="display:flex; align-items:center; gap:8px; margin-bottom: 12px; padding: 0 16px;">
+<button class="btn-secondary" onclick="abrirModalReportes()" style="font-size:0.75rem; padding:6px 12px; background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.3); color:#10b981; border-radius:10px; cursor:pointer; font-weight:600; display:flex; align-items:center; gap:6px;">
             <i class="fa-solid fa-chart-line"></i> Reportes
           </button>
           <button class="btn-secondary" onclick="abrirModalPrecios()" style="font-size:0.75rem; padding:6px 12px; background:rgba(217,119,6,0.1); border:1px solid rgba(217,119,6,0.3); color:#b45309; border-radius:10px; cursor:pointer; font-weight:600; display:flex; align-items:center; gap:6px;">
@@ -2344,11 +2352,6 @@
           <button class="btn-secondary" onclick="abrirModalLogAuditoria()" style="font-size:0.75rem; padding:6px 12px; background:rgba(37,99,235,0.1); border:1px solid rgba(37,99,235,0.3); color:#1d4ed8; border-radius:10px; cursor:pointer; font-weight:600; display:flex; align-items:center; gap:6px;">
             <i class="fa-solid fa-clipboard-list"></i> Log
           </button>
-          <div class="user-avatar-badge" style="width: 32px; height: 32px; border-radius: 50%; background: var(--primary); color: white; display: none; align-items: center; justify-content: center; font-weight: 800; font-size: 1.1rem; margin-right: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" title="Usuario Logueado"></div>
-          <button class="btn-logout" onclick="ejecutarLogout()" title="Cerrar sesión">
-            <i class="fa-solid fa-right-from-bracket"></i>
-          </button>
-        </div>
       </div>
       
       <!-- ITEM PRINCIPAL: BALANCE GENERAL -->
@@ -2384,36 +2387,36 @@
             <div style="flex: 1; min-width: 130px;">
               <label class="form-label" style="font-size: 0.62rem; margin-bottom: 2px; color:var(--text-muted);">Desde Mes</label>
               <select id="fin-balance-mes-inicio" class="form-select" style="padding: 5px 10px; font-size: 0.78rem; background: #ffffff; color:#0f172a;" onchange="sincronizarFiltrosBalance()">
-                <option value="2026-01">2026-01 (Enero)</option>
-                <option value="2026-02">2026-02 (Febrero)</option>
-                <option value="2026-03">2026-03 (Marzo)</option>
-                <option value="2026-04">2026-04 (Abril)</option>
-                <option value="2026-05">2026-05 (Mayo)</option>
-                <option value="2026-12">2026-12 (Diciembre)</option>
-                <option value="2026-11">2026-11 (Noviembre)</option>
-                <option value="2026-10">2026-10 (Octubre)</option>
-                <option value="2026-09">2026-09 (Septiembre)</option>
-                <option value="2026-08">2026-08 (Agosto)</option>
-                <option value="2026-07">2026-07 (Julio)</option>
-                <option value="2026-06" selected>2026-06 (Junio)</option>
-              </select>
+  <option value="2026-01">2026-01 (Enero)</option>
+  <option value="2026-02">2026-02 (Febrero)</option>
+  <option value="2026-03">2026-03 (Marzo)</option>
+  <option value="2026-04">2026-04 (Abril)</option>
+  <option value="2026-05">2026-05 (Mayo)</option>
+  <option value="2026-06">2026-06 (Junio)</option>
+  <option value="2026-07">2026-07 (Julio)</option>
+  <option value="2026-08">2026-08 (Agosto)</option>
+  <option value="2026-09">2026-09 (Septiembre)</option>
+  <option value="2026-10">2026-10 (Octubre)</option>
+  <option value="2026-11">2026-11 (Noviembre)</option>
+  <option value="2026-12">2026-12 (Diciembre)</option>
+</select>
             </div>
             <div style="flex: 1; min-width: 130px;">
               <label class="form-label" style="font-size: 0.62rem; margin-bottom: 2px; color:var(--text-muted);">Hasta Mes</label>
               <select id="fin-balance-mes-fin" class="form-select" style="padding: 5px 10px; font-size: 0.78rem; background: #ffffff; color:#0f172a;" onchange="sincronizarFiltrosBalance()">
-                <option value="2026-01">2026-01 (Enero)</option>
-                <option value="2026-02">2026-02 (Febrero)</option>
-                <option value="2026-03">2026-03 (Marzo)</option>
-                <option value="2026-04">2026-04 (Abril)</option>
-                <option value="2026-05">2026-05 (Mayo)</option>
-                <option value="2026-12">2026-12 (Diciembre)</option>
-                <option value="2026-11">2026-11 (Noviembre)</option>
-                <option value="2026-10">2026-10 (Octubre)</option>
-                <option value="2026-09">2026-09 (Septiembre)</option>
-                <option value="2026-08">2026-08 (Agosto)</option>
-                <option value="2026-07">2026-07 (Julio)</option>
-                <option value="2026-06" selected>2026-06 (Junio)</option>
-              </select>
+  <option value="2026-01">2026-01 (Enero)</option>
+  <option value="2026-02">2026-02 (Febrero)</option>
+  <option value="2026-03">2026-03 (Marzo)</option>
+  <option value="2026-04">2026-04 (Abril)</option>
+  <option value="2026-05">2026-05 (Mayo)</option>
+  <option value="2026-06">2026-06 (Junio)</option>
+  <option value="2026-07">2026-07 (Julio)</option>
+  <option value="2026-08">2026-08 (Agosto)</option>
+  <option value="2026-09">2026-09 (Septiembre)</option>
+  <option value="2026-10">2026-10 (Octubre)</option>
+  <option value="2026-11">2026-11 (Noviembre)</option>
+  <option value="2026-12">2026-12 (Diciembre)</option>
+</select>
             </div>
           </div>
         </div>
@@ -2438,37 +2441,37 @@
           <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
             <div style="flex: 1; min-width: 120px;">
               <label class="form-label" style="font-size: 0.6rem; margin-bottom: 2px;">Desde Mes</label>
-              <select id="fin-cuotas-mes-inicio" class="form-select" style="padding: 4px 8px; font-size: 0.75rem;" onchange="filtrarYCalcularFinanzas()">
-                <option value="2026-01">2026-01 (Enero)</option>
-                <option value="2026-02">2026-02 (Febrero)</option>
-                <option value="2026-03">2026-03 (Marzo)</option>
-                <option value="2026-04">2026-04 (Abril)</option>
-                <option value="2026-05">2026-05 (Mayo)</option>
-                <option value="2026-12">2026-12 (Diciembre)</option>
-                <option value="2026-11">2026-11 (Noviembre)</option>
-                <option value="2026-10">2026-10 (Octubre)</option>
-                <option value="2026-09">2026-09 (Septiembre)</option>
-                <option value="2026-08">2026-08 (Agosto)</option>
-                <option value="2026-07">2026-07 (Julio)</option>
-                <option value="2026-06" selected>2026-06 (Junio)</option>
-              </select>
+              <select id="fin-cuotas-mes-inicio" class="form-select" style="padding: 5px 10px; font-size: 0.78rem; background: #ffffff; color:#0f172a;" onchange="sincronizarFiltrosCuotas()">
+  <option value="2026-01">2026-01 (Enero)</option>
+  <option value="2026-02">2026-02 (Febrero)</option>
+  <option value="2026-03">2026-03 (Marzo)</option>
+  <option value="2026-04">2026-04 (Abril)</option>
+  <option value="2026-05">2026-05 (Mayo)</option>
+  <option value="2026-06">2026-06 (Junio)</option>
+  <option value="2026-07">2026-07 (Julio)</option>
+  <option value="2026-08">2026-08 (Agosto)</option>
+  <option value="2026-09">2026-09 (Septiembre)</option>
+  <option value="2026-10">2026-10 (Octubre)</option>
+  <option value="2026-11">2026-11 (Noviembre)</option>
+  <option value="2026-12">2026-12 (Diciembre)</option>
+</select>
             </div>
             <div style="flex: 1; min-width: 120px;">
               <label class="form-label" style="font-size: 0.6rem; margin-bottom: 2px;">Hasta Mes</label>
-              <select id="fin-cuotas-mes-fin" class="form-select" style="padding: 4px 8px; font-size: 0.75rem;" onchange="filtrarYCalcularFinanzas()">
-                <option value="2026-01">2026-01 (Enero)</option>
-                <option value="2026-02">2026-02 (Febrero)</option>
-                <option value="2026-03">2026-03 (Marzo)</option>
-                <option value="2026-04">2026-04 (Abril)</option>
-                <option value="2026-05">2026-05 (Mayo)</option>
-                <option value="2026-12">2026-12 (Diciembre)</option>
-                <option value="2026-11">2026-11 (Noviembre)</option>
-                <option value="2026-10">2026-10 (Octubre)</option>
-                <option value="2026-09">2026-09 (Septiembre)</option>
-                <option value="2026-08">2026-08 (Agosto)</option>
-                <option value="2026-07">2026-07 (Julio)</option>
-                <option value="2026-06" selected>2026-06 (Junio)</option>
-              </select>
+              <select id="fin-cuotas-mes-fin" class="form-select" style="padding: 5px 10px; font-size: 0.78rem; background: #ffffff; color:#0f172a;" onchange="sincronizarFiltrosCuotas()">
+  <option value="2026-01">2026-01 (Enero)</option>
+  <option value="2026-02">2026-02 (Febrero)</option>
+  <option value="2026-03">2026-03 (Marzo)</option>
+  <option value="2026-04">2026-04 (Abril)</option>
+  <option value="2026-05">2026-05 (Mayo)</option>
+  <option value="2026-06">2026-06 (Junio)</option>
+  <option value="2026-07">2026-07 (Julio)</option>
+  <option value="2026-08">2026-08 (Agosto)</option>
+  <option value="2026-09">2026-09 (Septiembre)</option>
+  <option value="2026-10">2026-10 (Octubre)</option>
+  <option value="2026-11">2026-11 (Noviembre)</option>
+  <option value="2026-12">2026-12 (Diciembre)</option>
+</select>
             </div>
           </div>
         </div>
@@ -5053,7 +5056,7 @@
         const finanzasView = document.getElementById('admin-torneos-view');
         
         // Botones superiores
-        const topButtons = finanzasView.querySelectorAll('.header-bar button.btn-secondary');
+        const topButtons = document.getElementById('finanzas-top-buttons') ? document.getElementById('finanzas-top-buttons').querySelectorAll('button') : [];
         topButtons.forEach(btn => btn.style.display = isCoach ? 'none' : 'flex');
         
         // Cards de resúmenes
