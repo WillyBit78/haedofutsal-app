@@ -63,7 +63,7 @@ app.post('/api/run', auth.authenticateToken, async (req, res) => {
     
   } catch (err) {
     console.error(`[API RUN ERROR] ${functionName}:`, err);
-    res.status(500).json({ success: false, error:  });
+    res.status(500).json({ success: false, error: 'Error interno del servidor' });
   }
 });
 
