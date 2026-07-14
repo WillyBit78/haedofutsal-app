@@ -1233,14 +1233,17 @@ function conciliarPagoTransferenciaAutomatico(paymentId, email, amount, month, p
     // Buscar nombre del socio
     const sheetUsers = ss.getSheetByName(HOJA_USUARIOS);
     let athleteName = "";
+    let athleteDni = "";
     if (sheetUsers) {
       const usersData = sheetUsers.getDataRange().getValues();
       const uHeaders = usersData[0];
       const uEmailCol = uHeaders.indexOf("Email");
       const uNameCol = uHeaders.indexOf("Name");
+      const uDniCol = uHeaders.indexOf("DNI");
       for (let i = 1; i < usersData.length; i++) {
         if (usersData[i][uEmailCol].toString().toLowerCase().trim() === socioEmail.toLowerCase().trim()) {
           athleteName = usersData[i][uNameCol] || "";
+          athleteDni = uDniCol !== -1 ? (usersData[i][uDniCol] || "").toString().trim() : "";
           break;
         }
       }
@@ -1259,9 +1262,6 @@ function conciliarPagoTransferenciaAutomatico(paymentId, email, amount, month, p
 
     let cleanTxId = "";
     
-    // El OCR puede fallar leyendo fechas u otros nmeros del comprobante como montos.
-    // Confiamos en el backend (Mercado Pago API) y en el Smart Match para validar el monto real.
-    
     if (transactionId && transactionId.trim().length > 0) {
       cleanTxId = transactionId.trim();
     }
@@ -1272,8 +1272,6 @@ function conciliarPagoTransferenciaAutomatico(paymentId, email, amount, month, p
     let fallbackToCasoB = false;
 
     if (cleanTxId && !isCoelsaId) {
-      // Caso A: ID de Pago de Mercado Pago Directo (Numérico)
-      // Verificar si ya fue acreditado en nuestra BD para evitar duplicados
       for (let i = 1; i < pagosData.length; i++) {
         const collectedBy = pagosData[i][pByCol] || "";
         if (collectedBy.includes(cleanTxId)) {
@@ -1293,7 +1291,7 @@ function conciliarPagoTransferenciaAutomatico(paymentId, email, amount, month, p
         const paymentInfo = JSON.parse(response.getContentText());
         if (paymentInfo.status === 'approved') {
           const mpAmount = parseCurrencyString(paymentInfo.transaction_amount);
-          if (Math.abs(mpAmount - targetAmount) < 10.0) { // Tolerancia de 10 pesos
+          if (Math.abs(mpAmount - targetAmount) < 10.0) {
             matchedPayment = paymentInfo;
             casoAExitoso = true;
           } else {
@@ -1308,9 +1306,7 @@ function conciliarPagoTransferenciaAutomatico(paymentId, email, amount, month, p
     }
 
     if (!casoAExitoso && (!cleanTxId || isCoelsaId || fallbackToCasoB)) {
-      // Caso B: Buscar en los últimos 50 movimientos o mock para Coelsa ID
       if (cleanTxId) {
-        // Verificar si ya fue acreditado en nuestra BD para evitar duplicados
         for (let i = 1; i < pagosData.length; i++) {
           const collectedBy = pagosData[i][pByCol] || "";
           if (collectedBy.includes(cleanTxId)) {
@@ -1321,7 +1317,7 @@ function conciliarPagoTransferenciaAutomatico(paymentId, email, amount, month, p
 
       {
         const now = new Date();
-        const past = new Date(now.getTime() - 4 * 24 * 3600 * 1000); // Buscar 4 días atrás (96hs) por seguridad
+        const past = new Date(now.getTime() - 4 * 24 * 3600 * 1000);
         const beginDate = past.toISOString();
         const endDate = now.toISOString();
         const url = `https://api.mercadopago.com/v1/payments/search?sort=date_created&criteria=desc&limit=100&range=date_created&begin_date=${encodeURIComponent(beginDate)}&end_date=${encodeURIComponent(endDate)}`;
@@ -1337,13 +1333,11 @@ function conciliarPagoTransferenciaAutomatico(paymentId, email, amount, month, p
           const resultInfo = JSON.parse(response.getContentText());
           const paymentsList = resultInfo.results || [];
           
-          // Filtrar candidatos aprobados con el monto correcto que no hayan sido acreditados
           const candidates = paymentsList.filter(p => {
             if (p.status !== 'approved') return false;
             const mpAmount = parseCurrencyString(p.transaction_amount);
             if (Math.abs(mpAmount - targetAmount) >= 10.0) return false;
             
-            // Verificar que este ID de pago de MP no esté en nuestra BD
             const mpTxId = p.id.toString();
             const alreadyUsed = pagosData.some(row => row[pByCol].toString().includes(mpTxId));
             if (alreadyUsed) return false;
@@ -1355,16 +1349,15 @@ function conciliarPagoTransferenciaAutomatico(paymentId, email, amount, month, p
             return { success: false, message: `No se encontró ninguna transferencia aprobada por $${targetAmount} libre de acreditación en tu cuenta.` };
           }
           
-          // Buscar coincidencia
           const nameMatches = [];
           const cleanAthleteName = athleteName.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
           const cleanAthleteEmail = socioEmail.toLowerCase().trim();
+          const cleanAthleteDni = athleteDni.replace(/\D/g, "");
           
           candidates.forEach(p => {
             let matches = false;
             
             if (cleanTxId && isCoelsaId) {
-              // Buscar coincidencia exacta de CoelsaID en los campos de la transferencia
               const mpTxId = (p.point_of_interaction && p.point_of_interaction.transaction_data && p.point_of_interaction.transaction_data.transaction_id || "").toString().trim().toUpperCase();
               const mpBankTransferId = (p.point_of_interaction && p.point_of_interaction.transaction_data && p.point_of_interaction.transaction_data.bank_transfer_id || "").toString().trim().toUpperCase();
               const mpAcquirerId = (p.acquirer_reconciliation_id || "").toString().trim().toUpperCase();
@@ -1374,7 +1367,13 @@ function conciliarPagoTransferenciaAutomatico(paymentId, email, amount, month, p
                 matches = true;
               }
             } else {
-              // Coincidencia clásica por nombre o email
+              const payerIdNumber = (p.payer && p.payer.identification && p.payer.identification.number || "").toString().trim();
+              const bankIdNumber = (p.point_of_interaction && p.point_of_interaction.transaction_data && p.point_of_interaction.transaction_data.bank_info && p.point_of_interaction.transaction_data.bank_info.payer && p.point_of_interaction.transaction_data.bank_info.payer.identification && p.point_of_interaction.transaction_data.bank_info.payer.identification.number || "").toString().trim();
+              
+              if (cleanAthleteDni && (payerIdNumber.includes(cleanAthleteDni) || bankIdNumber.includes(cleanAthleteDni))) {
+                matches = true;
+              }
+              
               const payerEmail = p.payer && p.payer.email ? p.payer.email.toLowerCase().trim() : "";
               if (payerEmail && (payerEmail === cleanAthleteEmail || payerEmail.includes(cleanAthleteEmail.split('@')[0]))) {
                 matches = true;
@@ -1405,16 +1404,12 @@ function conciliarPagoTransferenciaAutomatico(paymentId, email, amount, month, p
               return { success: false, message: `No pudimos encontrar ninguna transferencia recibida en nuestra cuenta de Mercado Pago con el CoelsaID o Código: ${cleanTxId}.` };
             }
             
-            // Si no hay coincidencia exacta de nombre, pero hay candidatos libres por ese monto
+            // Si no hay coincidencia exacta de nombre, pero hay un ÚNICO candidato libre por ese monto en todo Mercado Pago
             if (candidates.length === 1) {
               matchedPayment = candidates[0];
               console.log(`[MP SMART MATCH] Coincidencia por candidato único sin coincidencia de nombre para $${targetAmount}.`);
             } else {
-              // Hay múltiples candidatos huérfanos del mismo importe.
-              // Como en Mercado Pago las transferencias de "Misma Titularidad" vienen sin nombre (Bank Transfer),
-              // tomamos el más reciente (candidates[0]) para no bloquear al socio, ya que ambos son válidos y del monto exacto.
-              matchedPayment = candidates[0];
-              console.log(`[MP SMART MATCH] Múltiples candidatos huérfanos idénticos ($${targetAmount}). Asignando el más reciente automáticamente.`);
+              return { success: false, message: `No se encontró una transferencia única por $${targetAmount} que coincida con tus datos registrados.` };
             }
           }
         } else {
