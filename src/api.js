@@ -87,8 +87,4 @@ module.exports = {
       return { error: 'Not allowed' };
     } catch(e) { return { error: e.message }; }
   }
-<<<<<<< Updated upstream
 };
-=======
-};
->>>>>>> Stashed changes
