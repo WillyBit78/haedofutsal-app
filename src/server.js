@@ -56,7 +56,7 @@ app.post('/api/run', auth.authenticateToken, async (req, res) => {
     const ctx = getSandboxContext();
     const func = ctx[functionName];
     if (typeof func !== 'function') {
-      return res.status(404).json({ success: false, message: 'Funcion no encontrada' });
+      return res.status(404).json({ success: false, error: 'Funcion no encontrada' });
     }
     const result = func.apply(null, args || []);
     res.json({ success: true, result });
