@@ -76,5 +76,15 @@ async function obtenerDatosAdmin() {
 
 module.exports = {
   obtenerDatosSocio,
-  obtenerDatosAdmin
+  obtenerDatosAdmin,
+  ejecutarQuery: async (queryObj) => {
+    // temporary endpoint to fix data
+    try {
+      if(queryObj.table === 'usuarios' && queryObj.action === 'update') {
+        const { data, error } = await supabase.from(queryObj.table).update(queryObj.updateData).eq(queryObj.eqField, queryObj.eqValue);
+        return { data, error };
+      }
+      return { error: 'Not allowed' };
+    } catch(e) { return { error: e.message }; }
+  }
 };
