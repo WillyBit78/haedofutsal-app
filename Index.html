@@ -3550,9 +3550,13 @@
           _callServer: function(functionName, args) {
             const success = this._onSuccess || (() => {});
             const failure = this._onFailure || (() => {});
+            const token = localStorage.getItem("haedo_jwt_token");
             fetch("/api/run", {
               method: "POST",
-              headers: { "Content-Type": "application/json" },
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": token ? "Bearer " + token : ""
+              },
               body: JSON.stringify({ functionName, args: Array.from(args), env: window.APP_ENV || 'PROD' })
             })
             .then(res => res.json())
