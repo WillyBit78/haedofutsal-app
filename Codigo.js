@@ -1410,7 +1410,12 @@ function conciliarPagoTransferenciaAutomatico(paymentId, email, amount, month, p
               matchedPayment = candidates[0];
               console.log(`[MP SMART MATCH] Coincidencia por candidato único sin coincidencia de nombre para $${targetAmount}.`);
             } else {
-              return { success: false, message: `No se encontró una transferencia única por $${targetAmount} que coincida con tus datos registrados.` };
+              const namesFound = candidates.map(p => {
+                const bName = (p.point_of_interaction && p.point_of_interaction.transaction_data && p.point_of_interaction.transaction_data.bank_info && p.point_of_interaction.transaction_data.bank_info.payer && p.point_of_interaction.transaction_data.bank_info.payer.long_name || "N/A").toString().trim();
+                const base = (p.description || (p.payer && (p.payer.first_name + ' ' + (p.payer.last_name || '')) || 'N/A')).toString().trim();
+                return `[${base} / ${bName}]`;
+              }).join(", ");
+              return { success: false, message: `No se encontró una transferencia única por $${targetAmount} que coincida con tus datos. Nombres en MP: ${namesFound}` };
             }
           }
         } else {
