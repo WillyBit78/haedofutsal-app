@@ -10136,7 +10136,7 @@
       fetch(url)
         .then(res => res.json())
         .then(data => {
-          if (!data.results || data.results.length === 0) {
+          if (data.error) { listMp.innerHTML = <div class=\'empty-state\'><p>Error: </p></div>; return; } if (!data.results || data.results.length === 0) {
             listMp.innerHTML = `<div class="empty-state"><p>No se encontraron transferencias recientes.</p></div>`;
             return;
           }

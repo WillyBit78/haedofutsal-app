@@ -333,7 +333,10 @@ app.post('/api/notifications/send', auth.authenticateToken, async (req, res) => 
 // === MERCADO PAGO ENDPOINT ===
 app.get('/api/mp-transfers', async (req, res) => {
   try {
-    const MP_TOKEN = process.env.MP_ACCESS_TOKEN || 'APP_USR-3322444120483456-062819-f186f817a6a28fd7251c13baaf3d014e-43153257';
+    let MP_TOKEN = process.env.MP_ACCESS_TOKEN;
+    if (!MP_TOKEN || MP_TOKEN === "MOCK_MP_ACCESS_TOKEN_DEVELOPMENT") {
+        MP_TOKEN = "APP_USR-3322444120483456-062819-f186f817a6a28fd7251c13baaf3d014e-43153257";
+    }
     
     let queryParams = new URLSearchParams();
     queryParams.append('sort', 'date_created');
@@ -359,7 +362,7 @@ app.get('/api/mp-transfers', async (req, res) => {
     res.json(mpRes.data);
   } catch (error) {
     console.error('Error fetching MP transfers:', error.response ? error.response.data : error.message);
-    res.status(500).json({ error: 'Error al cargar transferencias de MP' });
+    res.status(500).json({ error: error.response ? JSON.stringify(error.response.data) : error.message });
   }
 });
 
@@ -369,7 +372,10 @@ app.get('/api/mp-transfers', async (req, res) => {
 app.post('/api/payments/reconcile', async (req, res) => {
   try {
     const { paymentId, username, amount, month, transferMethod, base64Receipt, transactionId, ocrAmount, ocrText } = req.body;
-    const MP_TOKEN = process.env.MP_ACCESS_TOKEN || 'APP_USR-3322444120483456-062819-f186f817a6a28fd7251c13baaf3d014e-43153257';
+    let MP_TOKEN = process.env.MP_ACCESS_TOKEN;
+    if (!MP_TOKEN || MP_TOKEN === "MOCK_MP_ACCESS_TOKEN_DEVELOPMENT") {
+        MP_TOKEN = "APP_USR-3322444120483456-062819-f186f817a6a28fd7251c13baaf3d014e-43153257";
+    }
 
     // 1. Get payment from Supabase
     const { data: pagos, error: errP } = await supabase.from('pagos').select('*').eq('payment_id', paymentId);
