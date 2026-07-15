@@ -148,13 +148,13 @@ function getMockSpreadsheetApp() {
   }
 
   const SHEET_HEADERS = {
-    'Usuarios': ['ID','Username','Role','Name','Photo','Phone','Category','DNI','Birthdate','Age','JoinDate','BloodType','MedicalFit','ObraSocial','EmergencyContact','EmergencyPhone','ParentName','ParentPhone','Notes'],
-    'Pagos': ['payment_id','username','month','amount','status','mp_link','collected_by','collected_at'],
-    'Categorias': ['category_id','name','price_monthly','parent_category'],
-    'Torneos': ['torneo_id','name','category','year','is_active'],
-    'Finanzas_Torneos': ['movimiento_id','torneo_id','date','type','concept','amount','notes','created_by'],
-    'Partidos': ['partido_id','torneo_id','date','opponent','is_home','status','goals_for','goals_against','notes'],
-    'Admins': ['username','name','role']
+    'Usuarios': ['ID','Username','Role','Name','Photo','Phone','Category','DNI','BirthDate','Age','JoinDate','BloodType','MedicalFit','ObraSocial','EmergencyContact','EmergencyPhone','ParentName','ParentPhone','Notes','Password'],
+    'Pagos': ['Payment_ID','Username','Month','Amount','Status','MP_Link','Collected_By','Collected_At'],
+    'Categorias': ['Category_ID','Name','Coach','Monthly_Fee','Torneos'],
+    'Torneos': ['Torneo_ID','Name','Category','Year','Is_Active'],
+    'Finanzas_Torneos': ['Movimiento_ID','Torneo_ID','Date','Type','Concept','Amount','Notes','Created_By'],
+    'Partidos': ['Partido_ID','Torneo_ID','Date','Opponent','Is_Home','Status','Goals_For','Goals_Against','Notes'],
+    'Admins': ['Username','Name','Role']
   };
 
   const mockSpreadsheet = {
@@ -169,7 +169,12 @@ function getMockSpreadsheetApp() {
             const sbRows = syncSupabase(sbTable, 'GET', null, '?select=*');
             if (!Array.isArray(sbRows)) return [];
             const headers = SHEET_HEADERS[sheetName] || Object.keys(sbRows[0] || {});
-            const mappedRows = sbRows.map(obj => headers.map(h => obj[h.toLowerCase()] || ''));
+            const mappedRows = sbRows.map(obj => headers.map(h => {
+              let col = h.toLowerCase();
+              if (sbTable === 'pagos' && col === 'username') col = 'email';
+              if (sbTable === 'logs_audit' && col === 'username') col = 'user_email';
+              return obj[col] !== undefined && obj[col] !== null ? obj[col] : '';
+            }));
             return [headers, ...mappedRows];
           }
         }),
