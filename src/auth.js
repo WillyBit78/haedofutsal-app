@@ -24,11 +24,11 @@ const loginHandler = async (req, res) => {
   try {
     const target = username.toString().trim().toLowerCase();
     
-    // Buscar por DNI, Username o Email
+    // Buscar por DNI o Username
     const { data: users, error } = await supabase
       .from('usuarios')
-      .select('id, email, role, name, photo, username, dni, password')
-      .or(`username.ilike.${target},dni.eq.${target},email.ilike.${target}`);
+      .select('id, role, name, photo, username, dni, password')
+      .or(`username.ilike.${target},dni.eq.${target}`);
       
     if (error) {
       console.error('[LOGIN DB ERROR]', error.message);
@@ -49,7 +49,6 @@ const loginHandler = async (req, res) => {
     // Generar JWT Token
     const payload = {
       id: user.id,
-      email: user.email,
       role: user.role,
       name: user.name,
       username: user.username,
@@ -61,7 +60,6 @@ const loginHandler = async (req, res) => {
     return res.json({
       success: true,
       token,
-      email: user.email,
       role: user.role || 'Deportista',
       name: user.name || '',
       username: user.username || '',

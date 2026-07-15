@@ -148,13 +148,13 @@ function getMockSpreadsheetApp() {
   }
 
   const SHEET_HEADERS = {
-    'Usuarios': ['ID','Email','Role','Name','Photo','Phone','Category','DNI','Birthdate','Age','JoinDate','BloodType','MedicalFit','ObraSocial','EmergencyContact','EmergencyPhone','ParentName','ParentPhone','Notes'],
-    'Pagos': ['payment_id','email','month','amount','status','mp_link','collected_by','collected_at'],
+    'Usuarios': ['ID','Username','Role','Name','Photo','Phone','Category','DNI','Birthdate','Age','JoinDate','BloodType','MedicalFit','ObraSocial','EmergencyContact','EmergencyPhone','ParentName','ParentPhone','Notes'],
+    'Pagos': ['payment_id','username','month','amount','status','mp_link','collected_by','collected_at'],
     'Categorias': ['category_id','name','price_monthly','parent_category'],
     'Torneos': ['torneo_id','name','category','year','is_active'],
     'Finanzas_Torneos': ['movimiento_id','torneo_id','date','type','concept','amount','notes','created_by'],
     'Partidos': ['partido_id','torneo_id','date','opponent','is_home','status','goals_for','goals_against','notes'],
-    'Admins': ['email','name','role']
+    'Admins': ['username','name','role']
   };
 
   const mockSpreadsheet = {
@@ -177,7 +177,10 @@ function getMockSpreadsheetApp() {
           const headers = SHEET_HEADERS[sheetName] || [];
           const obj = {};
           headers.forEach((h, idx) => {
-            obj[h.toLowerCase()] = rowArray[idx] !== undefined ? rowArray[idx] : '';
+            let colName = h.toLowerCase();
+            if (sbTable === 'pagos' && colName === 'username') colName = 'email';
+            if (sbTable === 'logs_audit' && colName === 'username') colName = 'user_email';
+            obj[colName] = rowArray[idx] !== undefined ? rowArray[idx] : '';
           });
           syncSupabase(sbTable, 'POST', [obj]);
         },
@@ -194,9 +197,11 @@ function getMockSpreadsheetApp() {
             if (!Array.isArray(sbRows)) return;
             const targetObj = sbRows[row - 2];
             if (targetObj) {
+              if (sbTable === 'pagos' && fieldName === 'username') fieldName = 'email';
+              if (sbTable === 'logs_audit' && fieldName === 'username') fieldName = 'user_email';
               const patchObj = {}; patchObj[fieldName] = val;
               let idCol = 'id';
-              if (sheetName === 'Usuarios') idCol = 'email';
+              if (sheetName === 'Usuarios') idCol = 'username';
               else if (sheetName === 'Pagos') idCol = 'payment_id';
               syncSupabase(sbTable, 'PATCH', patchObj, `?${idCol}=eq.${encodeURIComponent(targetObj[idCol])}`);
             }
@@ -209,7 +214,7 @@ function getMockSpreadsheetApp() {
           const targetObj = sbRows[rowIndex1Based - 2];
           if (targetObj) {
             let idCol = 'id';
-            if (sheetName === 'Usuarios') idCol = 'email';
+            if (sheetName === 'Usuarios') idCol = 'username';
             else if (sheetName === 'Pagos') idCol = 'payment_id';
             syncSupabase(sbTable, 'DELETE', null, `?${idCol}=eq.${encodeURIComponent(targetObj[idCol])}`);
           }
@@ -266,15 +271,15 @@ webpush.setVapidDetails(
 // 1. Guardar suscripción del dispositivo
 app.post('/api/notifications/subscribe', auth.authenticateToken, async (req, res) => {
   const subscription = req.body;
-  const email_socio = req.user.email;
+  const username_socio = req.user.username;
   
-  if (!email_socio) return res.status(401).json({ error: 'No autorizado' });
+  if (!username_socio) return res.status(401).json({ error: 'No autorizado' });
 
   // Guardar en Supabase (upsert)
   try {
     const { error } = await supabase
       .from('suscripciones_push')
-      .upsert({ email_socio: email_socio, suscripcion: subscription }, { onConflict: 'email_socio' });
+      .upsert({ username_socio: username_socio, suscripcion: subscription }, { onConflict: 'username_socio' });
       
     if (error) throw error;
     res.status(201).json({ success: true });
@@ -312,7 +317,7 @@ app.post('/api/notifications/send', auth.authenticateToken, async (req, res) => 
       const payload = JSON.stringify({ title: titulo, body: mensaje });
       const promises = subs.map(sub => {
         return webpush.sendNotification(sub.suscripcion, payload).catch(err => {
-          console.error("Fallo al enviar push a ", sub.email_socio, err);
+          console.error("Fallo al enviar push a ", sub.username_socio, err);
         });
       });
       await Promise.all(promises);
@@ -322,6 +327,185 @@ app.post('/api/notifications/send', auth.authenticateToken, async (req, res) => 
   } catch (err) {
     console.error('Error al enviar notificaciones:', err);
     res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+// === MERCADO PAGO ENDPOINT ===
+app.get('/api/mp-transfers', async (req, res) => {
+  try {
+    const MP_TOKEN = process.env.MP_ACCESS_TOKEN || 'APP_USR-3322444120483456-062819-f186f817a6a28fd7251c13baaf3d014e-43153257';
+    
+    let queryParams = new URLSearchParams();
+    queryParams.append('sort', 'date_created');
+    queryParams.append('criteria', 'desc');
+    queryParams.append('limit', '50');
+
+    // add date filters if requested
+    const startDate = req.query.startDate;
+    const endDate = req.query.endDate;
+    if (startDate && endDate) {
+        queryParams.append('range', 'date_created');
+        queryParams.append('begin_date', new Date(startDate).toISOString());
+        queryParams.append('end_date', new Date(endDate + 'T23:59:59.999Z').toISOString());
+    }
+
+    const axios = require('axios');
+    const mpRes = await axios.get('https://api.mercadopago.com/v1/payments/search?' + queryParams.toString(), {
+       headers: {
+         'Authorization': 'Bearer ' + MP_TOKEN
+       }
+    });
+
+    res.json(mpRes.data);
+  } catch (error) {
+    console.error('Error fetching MP transfers:', error.response ? error.response.data : error.message);
+    res.status(500).json({ error: 'Error al cargar transferencias de MP' });
+  }
+});
+
+
+// === RUTAS DE CONCILIACIÓN DE PAGOS ===
+
+app.post('/api/payments/reconcile', async (req, res) => {
+  try {
+    const { paymentId, username, amount, month, transferMethod, base64Receipt, transactionId, ocrAmount, ocrText } = req.body;
+    const MP_TOKEN = process.env.MP_ACCESS_TOKEN || 'APP_USR-3322444120483456-062819-f186f817a6a28fd7251c13baaf3d014e-43153257';
+
+    // 1. Get payment from Supabase
+    const { data: pagos, error: errP } = await supabase.from('pagos').select('*').eq('payment_id', paymentId);
+    if (errP || !pagos || pagos.length === 0) {
+      return res.status(404).json({ success: false, message: "No se encontró el registro de pago." });
+    }
+    const pago = pagos[0];
+
+    // Clean amounts
+    const targetAmount = parseFloat(amount.toString().replace(/[^0-9.-]+/g,""));
+    
+    let cleanTxId = (transactionId || "").trim();
+    const isCoelsaId = cleanTxId && (cleanTxId.length === 22 || /[a-zA-Z]/.test(cleanTxId));
+
+    let casoAExitoso = false;
+    let fallbackToCasoB = false;
+
+    if (cleanTxId && !isCoelsaId) {
+      // Check if already used
+      const { data: usedPagos } = await supabase.from('pagos').select('payment_id').ilike('collected_by', `%${cleanTxId}%`);
+      if (usedPagos && usedPagos.length > 0) {
+         return res.json({ success: false, message: `El comprobante ingresado (ID: ${cleanTxId}) ya fue utilizado para acreditar otra cuota.` });
+      }
+
+      // Check MP
+      const axios = require('axios');
+      try {
+        const mpRes = await axios.get(`https://api.mercadopago.com/v1/payments/${cleanTxId}`, {
+          headers: { 'Authorization': 'Bearer ' + MP_TOKEN }
+        });
+        if (mpRes.data && mpRes.data.status === 'approved') {
+          const mpAmount = parseFloat(mpRes.data.transaction_amount);
+          if (Math.abs(mpAmount - targetAmount) < 10.0) {
+            casoAExitoso = true;
+          } else {
+            fallbackToCasoB = true;
+          }
+        } else {
+          fallbackToCasoB = true;
+        }
+      } catch (e) {
+        fallbackToCasoB = true;
+      }
+    }
+
+    if (!casoAExitoso && (!cleanTxId || isCoelsaId || fallbackToCasoB)) {
+      if (cleanTxId) {
+        const { data: usedPagos } = await supabase.from('pagos').select('payment_id').ilike('collected_by', `%${cleanTxId}%`);
+        if (usedPagos && usedPagos.length > 0) {
+           return res.json({ success: false, message: `El comprobante ingresado (ID/Coelsa: ${cleanTxId}) ya fue utilizado para acreditar otra cuota.` });
+        }
+      }
+
+      // Caso B: manual review required
+      let collectedByStr = transferMethod;
+      if (cleanTxId) collectedByStr += " ID:" + cleanTxId;
+      
+      const updateData = {
+        status: 'En Revisión',
+        mp_link: base64Receipt || "",
+        collected_by: collectedByStr,
+        collected_at: new Date().toISOString()
+      };
+      
+      await supabase.from('pagos').update(updateData).eq('payment_id', paymentId);
+      return res.json({ success: false, casoB: true, message: "Validación manual requerida" });
+    }
+
+    // Caso A: Success
+    const updateData = {
+      status: 'Pagado',
+      mp_link: '',
+      collected_by: `MercadoPago (ID:${cleanTxId})`,
+      collected_at: new Date().toISOString()
+    };
+    await supabase.from('pagos').update(updateData).eq('payment_id', paymentId);
+
+    return res.json({ success: true, message: "El comprobante fue procesado e imputado exitosamente a tu cuenta de forma automática." });
+
+  } catch (error) {
+    console.error('Error in reconcile:', error);
+    res.status(500).json({ error: 'Error interno en la conciliación' });
+  }
+});
+
+app.post('/api/payments/request-review', async (req, res) => {
+  try {
+    const { paymentId, username, amount, month, paymentMethod, base64Receipt, failReason } = req.body;
+    const updateData = {
+      status: 'En Revisión',
+      mp_link: base64Receipt || "",
+      collected_by: paymentMethod + (failReason ? " (" + failReason + ")" : ""),
+      collected_at: new Date().toISOString()
+    };
+    await supabase.from('pagos').update(updateData).eq('payment_id', paymentId);
+    return res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/payments/approve', async (req, res) => {
+  try {
+    const { paymentId, username, amount, month } = req.body;
+    const updateData = {
+      status: 'Pagado',
+      mp_link: '',
+      collected_at: new Date().toISOString()
+    };
+    // Prepend 'Aprobado Manual - ' to collected_by
+    const { data: pagos } = await supabase.from('pagos').select('collected_by').eq('payment_id', paymentId);
+    if (pagos && pagos.length > 0) {
+       updateData.collected_by = "Aprobado Manual - " + pagos[0].collected_by;
+    }
+    await supabase.from('pagos').update(updateData).eq('payment_id', paymentId);
+    return res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/payments/reject', async (req, res) => {
+  try {
+    const { paymentId, username, month, motivo } = req.body;
+    const updateData = {
+      status: 'Deuda',
+      mp_link: '',
+      collected_by: '',
+      collected_at: null
+    };
+    await supabase.from('pagos').update(updateData).eq('payment_id', paymentId);
+    
+    // Podría insertarse en alguna tabla de auditoría, pero por ahora lo dejamos simple.
+    return res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 

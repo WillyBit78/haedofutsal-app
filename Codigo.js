@@ -719,7 +719,7 @@ function registrarSocioNuevo(socioObj, userEmail) {
     const sheet = ss.getSheetByName(HOJA_USUARIOS);
     if (!sheet) throw new Error("No se encontró la hoja de usuarios.");
 
-    const email = (socioObj.Email || "").trim().toLowerCase();
+    const email = (socioObj.Username || socioObj.Email || "").trim().toLowerCase();
     if (!email) throw new Error("El correo electrónico es obligatorio.");
 
     const username = (socioObj.Username || "").trim().toLowerCase();
@@ -2006,7 +2006,7 @@ function registrarSocioPublico(socioObj) {
     const sheetUsers = ss.getSheetByName(HOJA_USUARIOS);
     if (!sheetUsers) throw new Error("No se encontró la hoja de usuarios.");
 
-    const email = (socioObj.Email || "").trim().toLowerCase();
+    const email = (socioObj.Username || socioObj.Email || "").trim().toLowerCase();
     const dni = (socioObj.DNI || "").toString().replace(/[^0-9]/g, "").trim();
 
     if (!email) throw new Error("El correo electrónico es obligatorio.");
@@ -2130,6 +2130,52 @@ function registrarSocioPublico(socioObj) {
     });
 
     sheetUsers.appendRow(newRow);
+    // Auto-generar cuota para el mes actual
+    try {
+      const sheetPagos = ss.getSheetByName('Pagos');
+      if (sheetPagos) {
+        const currentDate = new Date();
+        const currentMonth = currentDate.getFullYear() + '-' + String(currentDate.getMonth() + 1).padStart(2, '0');
+        const paymentId = 'PAG-' + Math.floor(Math.random() * 10000) + '-' + Math.floor(Math.random() * 100);
+        let catForFee = socioObj.Category || '';
+        let correctAmount = 0;
+        
+        // simple fee calculation, usually available in getSocioFee
+        if (typeof getSocioFee === 'function') {
+           correctAmount = getSocioFee(catForFee);
+        } else {
+           correctAmount = 15000;
+        }
+
+        sheetPagos.appendRow([paymentId, candidato || socioObj.Username || '', currentMonth, correctAmount, 'Deuda', '', '', '']);
+      }
+    } catch(e) {
+      console.warn('No se pudo autogenerar la cuota: ', e);
+    }
+
+    // Auto-generar cuota para el mes actual
+    try {
+      const sheetPagos = ss.getSheetByName('Pagos');
+      if (sheetPagos) {
+        const currentDate = new Date();
+        const currentMonth = currentDate.getFullYear() + '-' + String(currentDate.getMonth() + 1).padStart(2, '0');
+        const paymentId = 'PAG-' + Math.floor(Math.random() * 10000) + '-' + Math.floor(Math.random() * 100);
+        let catForFee = socioObj.Category || '';
+        let correctAmount = 0;
+        
+        // simple fee calculation, usually available in getSocioFee
+        if (typeof getSocioFee === 'function') {
+           correctAmount = getSocioFee(catForFee);
+        } else {
+           correctAmount = 15000;
+        }
+
+        sheetPagos.appendRow([paymentId, candidato || socioObj.Username || '', currentMonth, correctAmount, 'Deuda', '', '', '']);
+      }
+    } catch(e) {
+      console.warn('No se pudo autogenerar la cuota: ', e);
+    }
+
 
     // Escribir en Logs_Audit
     try {

@@ -1,15 +1,17 @@
 const supabase = require('./supabase');
 
-async function obtenerDatosSocio(email) {
+async function obtenerDatosSocio(identifier) {
   try {
-    const { data: users, error: errU } = await supabase.from('usuarios').select('*').eq('email', email);
+    const target = identifier.toString().trim().toLowerCase();
+    const { data: users, error: errU } = await supabase.from('usuarios').select('*').or(`username.ilike.${target},dni.eq.${target}`);
     if (errU || !users || users.length === 0) throw new Error('Usuario no encontrado');
     const u = users[0];
     
-    const { data: pagos, error: errP } = await supabase.from('pagos').select('*').eq('email', email).order('month', { ascending: true });
+    // We search pagos by 'email' column since it now stores the username
+    const { data: pagos, error: errP } = await supabase.from('pagos').select('payment_id, username:email, month, amount, status, mp_link, collected_by, collected_at').ilike('email', u.username).order('month', { ascending: true });
     
     const obj = {
-      Email: u.email,
+      Username: u.username,
       Role: u.role,
       Name: u.name,
       Phone: u.phone,
@@ -52,21 +54,35 @@ async function obtenerDatosSocio(email) {
 async function obtenerDatosAdmin() {
   try {
     const { data: users } = await supabase.from('usuarios').select('*');
-    const { data: pagos } = await supabase.from('pagos').select('*');
+    const { data: pagos } = await supabase.from('pagos').select('payment_id, username:email, month, amount, status, mp_link, collected_by, collected_at');
     const { data: categorias } = await supabase.from('categorias').select('*');
     const { data: torneos } = await supabase.from('torneos').select('*');
     const { data: finanzas } = await supabase.from('finanzas_torneos').select('*');
     const { data: partidos } = await supabase.from('partidos').select('*');
-    const { data: logs } = await supabase.from('logs_audit').select('*').order('id', { ascending: false }).limit(100);
+    const { data: logs } = await supabase.from('logs_audit').select('id, user_email, action, details, created_at').order('id', { ascending: false }).limit(100);
+    
+    // Map logs to have username instead of user_email
+    const logsMapped = (logs || []).map(l => ({
+      ...l,
+      Username: l.user_email,
+      user_email: undefined
+    }));
+
+    // Map users to remove email
+    const usersMapped = (users || []).map(u => ({
+      ...u,
+      Email: undefined,
+      email: undefined
+    }));
     
     return {
-      Usuarios: users || [],
+      Usuarios: usersMapped,
       Pagos: pagos || [],
       Categorias: categorias || [],
       Torneos: torneos || [],
       Finanzas_Torneos: finanzas || [],
       Partidos: partidos || [],
-      Logs_Audit: logs || []
+      Logs_Audit: logsMapped
     };
   } catch(e) {
     console.error('obtenerDatosAdmin ERROR:', e);
