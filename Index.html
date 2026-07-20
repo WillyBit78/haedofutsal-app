@@ -5099,8 +5099,14 @@
       }
     }
 
-    function obtenerEstadoSocioMes(username, currentMonth, pagos) {
-      const pagosSocio = (pagos || []).filter(p => p.Username.toLowerCase() === username.toLowerCase());
+    function obtenerEstadoSocioMes(emailOrUsername, currentMonth, pagos) {
+      const target = (emailOrUsername || "").toLowerCase().trim();
+      const targetUser = target.split('@')[0];
+      const pagosSocio = (pagos || []).filter(p => {
+        const pEmail = (p.Email || "").toLowerCase().trim();
+        const pUser = pEmail.split('@')[0];
+        return pEmail === target || pUser === targetUser || pEmail === targetUser || pUser === target;
+      });
       const pagoMesActual = pagosSocio.find(p => p.Month === currentMonth);
       const tieneDeudaAnterior = pagosSocio.some(p => p.Month < currentMonth && (p.Status === "Pendiente" || p.Status === "Deuda" || p.Status === "Rechazada"));
 
@@ -7646,7 +7652,7 @@
         const agrupadoPorCat = {};
         pagosMes.forEach(p => {
           // Obtener categoría del socio
-          const socio = dbUsuarios.find(u => u.Username.toLowerCase() === p.Username.toLowerCase());
+          const socio = dbUsuarios.find(u => (u.Email || "").toLowerCase() === (p.Email || "").toLowerCase() || (u.Username || "").toLowerCase() === (p.Email || "").split('@')[0].toLowerCase());
           const cat = socio ? (socio.Category || "Sin Categoría") : "Desconocida";
           if (!agrupadoPorCat[cat]) agrupadoPorCat[cat] = { pagado: 0, pendiente: 0, count: 0 };
           
